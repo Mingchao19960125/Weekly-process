@@ -4,6 +4,8 @@ Created on Wed Oct  3 12:39:15 2018
 update 2/21 2019
 update some the draw_time_series_plot fix the label of y axis
 @author: leizhao
+Modified by Mingchao and Jim in Nov 2019 to write to "emolt_no_telemetry.dat" 
+which included a) calculating std_temp, range_depth, and yearday from raw data and b) writing output similar to emolt.dat
 """
 import conversions as cv
 import ftplib
@@ -27,11 +29,9 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
 #HARDCODES
-    
-    
-from collections import Counter
+
+from collections import Counter    
 def dd2dm(lat,lon):
     """
     convert lat, lon from decimal degrees to degrees,minutes
@@ -818,7 +818,9 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,tele
         mean_lat=str(round(mean(value_data_df['Lat'].values),4))
         mean_lon=str(round(mean(value_data_df['Lon'].values),4)) #caculate the mean depth
         mean_temp=str(round(mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))
+        std_temp=str(round(std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))  # standard deviation of bottom temps
         mean_depth=str(abs(int(round(mean(value_data_df['Depth(m)'].values))))).zfill(3)   #caculate the mean depth
+        range_depth=str(abs(int(round(max(value_data_df['Depth(m)'].values)-min(value_data_df['Depth(m)'].values))))).zfill(3)   #caculate the mean depth
         for i in header_df.index:#get the vessel number of every file
             if header_df['key'][i].lower()=='vessel number'.lower():
                 vessel_number=int(header_df['value'][i])
@@ -883,7 +885,22 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,tele
                                         record_file_df['min_diff_depth'][j]=diff_depth
                                 valuable_tele_df.drop(i)
                                 break
-                                
+#Count data that failed to match successfully
+                elif abs(valuable_tele_df['time'][i]-time_gmt)>timedelta(minutes=accept_minutes_diff) and zl.dist(lat1=lat,lon1=lon,lat2=float(valuable_tele_df['lat'][i]),lon2=float(valuable_tele_df['lon'][i]))>acceptable_distance_diff:
+                     emolt_no_telemetry=pd.DataFrame()
+                     emolt_no_telemetry['vessel']=valuable_tele_df['vessel_n'][i]
+                     emolt_no_telemetry['datet']=valuable_tele_df['time'][i]
+                     emolt_no_telemetry['lat']=value_data_df['Lat'][i]
+                     emolt_no_telemetry['lon']=value_data_df['Lon'][i]
+                     emolt_no_telemetry['depth']=value_data_df['Depth(m)'][i]
+                     emolt_no_telemetry['depth_range']=range_depth
+                     emolt_no_telemetry['hours']=valuable_tele_df['time'][len(valuable_tele_df)-1]-valuable_tele_df['time'][0]
+                     emolt_no_telemetry['mean_temp']=mean_temp
+                     emolt_no_telemetry['std_temp']=std_temp
+                     #save the emolt_no_telemetry file
+                     if not os.path.exists(path_save):
+                         os.makedirs(path_save)
+                     emolt_no_telemetry.to_csv(os.path.join(path_save,start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'emolt_no_telemetry.csv'),index=0) 
     for i in record_file_df.index:
         counter=weekly_times(name=record_file_df['Boat'][i],tstart=start_time.strftime('%Y-%m-%d'),tend=end_time.strftime('%Y-%m-%d'))
         try:
