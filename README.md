@@ -4,3 +4,5 @@ The parameter of Weekly process should include raw_data_name.txt , telemetry_sta
       raw_data_name.txt:If wouldn't add new vessel,we don't need to change
       telemetry_status.csv: download from https://docs.google.com/spreadsheets/d/1uLhG_q09136lfbFZppU2DU9lzfYh0fJYsxDHUgMB1FM/edit?ts=5ba8fe2b#gid=0 before run Weekly Process
       dictionary.json: receive from Jim every week
+Nov 14,2019
+      update match_tele_raw/raw_tele_modules.py to count number boats on statistics.csv
