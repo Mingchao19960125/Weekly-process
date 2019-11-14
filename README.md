@@ -6,4 +6,4 @@ The parameter of Weekly process should include raw_data_name.txt , telemetry_sta
       dictionary.json: receive from Jim every week
 Nov 14,2019
 
-update match_tele_raw/raw_tele_modules.py to count number boats on statistics.csv
+update match_tele_raw/raw_tele_modules.py to count number boats in statistics.csv
