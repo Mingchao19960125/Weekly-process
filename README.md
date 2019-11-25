@@ -7,3 +7,6 @@ The parameter of Weekly process should include raw_data_name.txt , telemetry_sta
 Nov 14,2019
 
 update match_tele_raw/raw_tele_modules.py to count number boats in statistics.csv by adding the key of tele_total_num
+Nov 25,2019
+
+update match_tele_raw/raw_tele_modules.py,by created emolt_raw.csv compares with emolt.dat to got the absent of  emolt.dat named emolt_no_telemetry.csv
