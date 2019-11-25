@@ -10,4 +10,4 @@ update match_tele_raw/raw_tele_modules.py to count number boats in statistics.cs
 
 Nov 25,2019
 
-update match_tele_raw/raw_tele_modules.py,by created emolt_raw.csv compares with emolt.dat to got the absent of  emolt.dat named emolt_no_telemetry.csv
+update match_tele_raw/raw_tele_modules.py:By creating emolt_raw.csv to compares with emolt.dat and got the absent of  emolt.dat named emolt_no_telemetry.csv
