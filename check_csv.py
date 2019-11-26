@@ -37,7 +37,8 @@ def main():
     remote_subdir=['Matdata','checked']
     ###########################
     end_time=datetime.now()
-    start_time,end_time=week_start_end(end_time,interval=1)
+    #start_time,end_time=week_start_end(end_time,interval=1)
+    start_time=end_time-timedelta(weeks=1)
     #download raw data from website
     files=ftpdownload.download(os.path.join(output_path,'Matdata'),ftppath='/Matdata')
     #classify the file by every boat

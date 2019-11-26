@@ -706,7 +706,7 @@ def format_lat_lon(data):
     return data
 
 
-def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
+def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
                    accept_minutes_diff=20,acceptable_distance_diff=2,dpi=300,Ttdepth=5):
     """
     start time and end time is utc time, and the format is datetime.datetime
@@ -952,43 +952,20 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,tele
     #according to new_record_file_df['Boat'] classify every boat's emolt_raw data,output DataFrame as 'emolt_raw.csv'.
     new_emolt_raw_dict=dict['emolt_raw_dict']
     new_record_file_df=dict['record_file_df']
-    new_index=new_emolt_raw_dict.keys()
+    new_index=new_emolt_raw_dict.keys()#get the name of vessels
     new_emolt_raw_d=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
     for i in new_index:
         for j in range(len(new_record_file_df)): #find the location of data of this boat in record file
             if i.lower()==new_record_file_df['Boat'][j].lower():
                 break
-        if len(new_emolt_raw_dict[i])==0:
+        if len(new_emolt_raw_dict[i])==0:#filter out the vessel that doesn't have data
             continue
         else:
-            new_emolt_raw_d=new_emolt_raw_d.append(new_emolt_raw_dict[i])
-            emolt_raw_save='/home/jmanning/Mingchao/result'
+            new_emolt_raw_d=new_emolt_raw_d.append(new_emolt_raw_dict[i])#append data to new_emolt_raw_d,get valuable emolt_raw
             if not os.path.exists(emolt_raw_save):
                 os.makedirs(emolt_raw_save)
             new_emolt_raw_d.index=range(len(new_emolt_raw_d))
             new_emolt_raw_d.to_csv(os.path.join(emolt_raw_save,'emolt_raw.csv'))
-    ################Hardcold########
-    emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'
-    emolt_no_telemetry_save='/home/jmanning/Mingchao/result'
-    path='https://www.nefsc.noaa.gov/drifter/emolt.dat'
-    #compare with emolt_raw.csv and emolt.dat to get emolt_no_telemetry.csv 
-    tele_df=read_telemetry(path)#get emolt.dat
-    emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)#get emolt_raw.csv
-    emolt_no_telemetry_DF=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
-    emolt_no_telemetry_result=emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
-    #according to columns,drop_duplicates
-    emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
-    #get the rest of emolt_raw_df,it's emolt_no_telemetry
-    emolt_no_telemetry_result=subtract(df1=emolt_raw_df,df2=emolt_no_telemetry_result,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
-    emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
-    #count ['std_temp'] and ['mean_temp'] again,get number likes that 12.33
-    for i in emolt_no_telemetry_result.index:
-        emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
-        emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
-    if not os.path.exists(emolt_no_telemetry_save):
-        os.makedirs(emolt_no_telemetry_save)
-    #save emolt_no_telemetry.csv
-    emolt_no_telemetry_result.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
     return dict
           
 
