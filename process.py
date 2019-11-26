@@ -32,10 +32,10 @@ def main():
     picture_save=output_path+'/stats/' #use to save the picture
     emolt='https://www.nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
     telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
-    emolt_raw_save='/home/jmanning/Mingchao/result'
-    emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'
-    emolt_no_telemetry_save='/home/jmanning/Mingchao/result'
-    path='https://www.nefsc.noaa.gov/drifter/emolt.dat'
+    emolt_raw_save='/home/jmanning/Mingchao/result'#output emolt_raw.csv
+    emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'#input emolt_raw.csv 
+    emolt_no_telemetry_save='/home/jmanning/Mingchao/result'#output emolt_no_telemetry.csv
+    path='https://www.nefsc.noaa.gov/drifter/emolt.dat'#input emolt.dat
     # below hardcodes is the informations to upload local data to student drifter. 
     subdir=['stats']    
     mremote='/Raw_Data'
