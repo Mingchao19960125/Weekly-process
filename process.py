@@ -32,19 +32,43 @@ def main():
     picture_save=output_path+'/stats/' #use to save the picture
     emolt='https://www.nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
     telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
+    emolt_raw_save='/home/jmanning/Mingchao/result'
+    emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'
+    emolt_no_telemetry_save='/home/jmanning/Mingchao/result'
+    path='https://www.nefsc.noaa.gov/drifter/emolt.dat'
     # below hardcodes is the informations to upload local data to student drifter. 
     subdir=['stats']    
     mremote='/Raw_Data'
     remote_subdir=['stats']
     ###########################
     end_time=datetime.now()
-    start_time,end_time=week_start_end(end_time,interval=1)
+    #start_time,end_time=week_start_end(end_time,interval=1)
+    start_time=end_time-timedelta(weeks=1)
     if not os.path.exists(picture_save):
         os.makedirs(picture_save)
     print('match telemetered and raw data!')
     #match the telementry data with raw data, calculate the numbers of successful matched and the differnces of two data. finally , use the picture to show the result.
     dict=rdm.match_tele_raw(os.path.join(output_path,'checked'),path_save=os.path.join(picture_save,'statistics'),telemetry_path=emolt,telemetry_status=telemetry_status,\
-                        start_time=start_time,end_time=end_time,dpi=500)
+                        emolt_raw_save=emolt_raw_save,start_time=start_time,end_time=end_time,dpi=500)
+    tele_df=rdm.read_telemetry(path)#get emolt.dat
+    emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)#get emolt_raw.csv
+    #create a DataFrame for store emolt_no_telemetry
+    emolt_no_telemetry_DF=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
+    #compare with emolt_raw.csv and emolt.dat to get emolt_no_telemetry.csv 
+    emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
+    #according to columns,drop_duplicates
+    emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
+    #get the rest of emolt_raw_df,it's emolt_no_telemetry
+    emolt_no_telemetry_result=rdm.subtract(df1=emolt_raw_df,df2=emolt_no_telemetry_result,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
+    emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
+    #count ['std_temp'] and ['mean_temp'] again,get number likes that 12.33
+    for i in emolt_no_telemetry_result.index:
+        emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
+        emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
+    #save emolt_no_telemetry.csv
+    if not os.path.exists(emolt_no_telemetry_save):
+        os.makedirs(emolt_no_telemetry_save)
+    emolt_no_telemetry_result.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
     tele_dict=dict['tele_dict']
     raw_dict=dict['raw_dict']
     record_file_df=dict['record_file_df']
@@ -54,7 +78,7 @@ def main():
     raw_d=pd.DataFrame(data=None,columns=['time','filename','mean_temp','mean_depth','mean_lat','mean_lon'])
     tele_d=pd.DataFrame(data=None,columns=['time','mean_temp','mean_depth','mean_lat','mean_lon'])
     for i in index:
-        for j in range(len(record_file_df)): #find the location of data of this boat in record file 
+        for j in range(len(record_file_df)): #find the location of data of this boat in record file
             if i.lower()==record_file_df['Boat'][j].lower():
                 break
         if len(raw_dict[i])==0 and len(tele_dict[i])==0:
