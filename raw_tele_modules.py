@@ -971,19 +971,23 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,tele
     emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'
     emolt_no_telemetry_save='/home/jmanning/Mingchao/result'
     path='https://www.nefsc.noaa.gov/drifter/emolt.dat'
-    ######main#########
-    tele_df=read_telemetry(path)
-    emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)
+    #compare with emolt_raw.csv and emolt.dat to get emolt_no_telemetry.csv 
+    tele_df=read_telemetry(path)#get emolt.dat
+    emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)#get emolt_raw.csv
     emolt_no_telemetry_DF=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
     emolt_no_telemetry_result=emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
+    #according to columns,drop_duplicates
     emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
+    #get the rest of emolt_raw_df,it's emolt_no_telemetry
     emolt_no_telemetry_result=subtract(df1=emolt_raw_df,df2=emolt_no_telemetry_result,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
     emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
+    #count ['std_temp'] and ['mean_temp'] again,get number likes that 12.33
     for i in emolt_no_telemetry_result.index:
         emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
         emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
     if not os.path.exists(emolt_no_telemetry_save):
         os.makedirs(emolt_no_telemetry_save)
+    #save emolt_no_telemetry.csv
     emolt_no_telemetry_result.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
     return dict
           
@@ -1200,12 +1204,12 @@ def to_list(lat,lon):
 def emolt_no_telemetry_df(tele_df,emolt_raw_df,year_now,emolt_no_telemetry_df):
     """compare with emolt.dat to get emolt_no_telemetry_df"""
     for i in emolt_raw_df.index:
-        time_range=timedelta(seconds=600)
-        emolt_raw_df['vessel'][i]='Vessel_'+str(emolt_raw_df['vessel'][i])
+        time_range=timedelta(seconds=600)#set a time range for filtering out the data that wo don't need
+        emolt_raw_df['vessel'][i]='Vessel_'+str(emolt_raw_df['vessel'][i])#set the format of emolt_raw_df['vessel'] likes that tele_df['vessel_n']
         for j in tele_df.index:
             emolt_time_str=str(tele_df['year'].iloc[j])+'-'+str(tele_df['month'].iloc[j])+'-'+str(tele_df['day'].iloc[j])+' '+str(tele_df['Hours'].iloc[j])+':'+str(tele_df['minates'].iloc[j])+':'+'00'
             emolt_time=datetime.strptime(emolt_time_str,'%Y-%m-%d %H:%M:%S')
-            if int(tele_df['year'][-10:-9])==year_now:
+            if int(tele_df['year'][-10:-9])==year_now:# if you want to compare all years data,you need to close there and delet year_now
                 if emolt_raw_df['vessel'][i] in tele_df['vessel_n'].values:
                     if emolt_raw_df['vessel'][i]==tele_df['vessel_n'][j]:
                         #if datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S").year==int(tele_df['year'][j]) and datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S").month==int(tele_df['month'][j]):
