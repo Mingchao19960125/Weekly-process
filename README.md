@@ -1,5 +1,5 @@
 # Weekly-process
-weekly-process include check_csv.py,process.py and diff_modules.py,
+weekly-process include check_csv.py,process.py and diff_modules.py:
       check_csv.py:check the data and fix it
       process.py:get statistics.csv,emolt_no_telemetry.csv,time_series_plot and location map of vessel
       diff_modules.py:get weekly.html
