@@ -811,7 +811,7 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
         #caculate the mean temperature and depth of every file
         #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
         value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
-        value_data_df=value_data_df.loc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
+        value_data_df=value_data_df.iloc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
         value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
                    (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
         value_data_df.index = range(len(value_data_df))  #reindex
@@ -824,9 +824,11 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
         mean_lat=str(round(mean(value_data_df['Lat'].values),4))
         mean_lon=str(round(mean(value_data_df['Lon'].values),4)) 
         #mean_temp=str(round(mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))
-        mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+        #mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+        mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][0:-1]),2)*100))
         #std_temp=str(round(std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))  # standard deviation of bottom temps
-        std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+        #std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+        std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][0:-1]),2)*100))
         mean_depth=str(abs(int(round(mean(value_data_df['Depth(m)'].values))))).zfill(3)   #caculate the mean depth
         range_depth=str(abs(int(round(max(value_data_df['Depth(m)'].values)-min(value_data_df['Depth(m)'].values))))).zfill(3) #caculate the mean depth
         for i in header_df.index:#get the vessel number of every file
@@ -1178,7 +1180,7 @@ def to_list(lat,lon):
         y.append(lon[i])
     return x,y
 
-def emolt_no_telemetry_df(tele_df,emolt_raw_df,year_now,emolt_no_telemetry_df):
+def emolt_no_telemetry_df(tele_df,emolt_raw_df,emolt_no_telemetry_df):
     """compare with emolt.dat to get emolt_no_telemetry_df"""
     for i in emolt_raw_df.index:
         time_range=timedelta(seconds=600)#set a time range for filtering out the data that wo don't need
@@ -1186,7 +1188,7 @@ def emolt_no_telemetry_df(tele_df,emolt_raw_df,year_now,emolt_no_telemetry_df):
         for j in tele_df.index:
             emolt_time_str=str(tele_df['year'].iloc[j])+'-'+str(tele_df['month'].iloc[j])+'-'+str(tele_df['day'].iloc[j])+' '+str(tele_df['Hours'].iloc[j])+':'+str(tele_df['minates'].iloc[j])+':'+'00'
             emolt_time=datetime.strptime(emolt_time_str,'%Y-%m-%d %H:%M:%S')
-            if int(tele_df['year'][-10:-9])==year_now:# if you want to compare all years data,you need to close there and delet year_now
+            if int(tele_df['year'][-10:-9])==int(datetime.now().year):# if you want to compare all years data,you need to close there and delet year_now
                 if emolt_raw_df['vessel'][i] in tele_df['vessel_n'].values:
                     if emolt_raw_df['vessel'][i]==tele_df['vessel_n'][j]:
                         #if datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S").year==int(tele_df['year'][j]) and datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S").month==int(tele_df['month'][j]):
