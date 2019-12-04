@@ -43,7 +43,7 @@ def main():
     ###########################
     end_time=datetime.now()
     #start_time,end_time=week_start_end(end_time,interval=1)
-    start_time=end_time-timedelta(weeks=1)
+    start_time=end_time-timedelta(weeks=49)
     if not os.path.exists(picture_save):
         os.makedirs(picture_save)
     print('match telemetered and raw data!')
@@ -54,17 +54,20 @@ def main():
     emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)#get emolt_raw.csv
     #create a DataFrame for store emolt_no_telemetry
     emolt_no_telemetry_DF=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
-    #compare with emolt_raw.csv and emolt.dat to get emolt_no_telemetry.csv 
-    emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
+    #compare with emolt_raw.csv and emolt.dat to get emolt_no_telemetry.csv
+    #emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
+    emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,emolt_no_telemetry_df=emolt_no_telemetry_DF)
     #according to columns,drop_duplicates
     emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
     #get the rest of emolt_raw_df,it's emolt_no_telemetry
     emolt_no_telemetry_result=rdm.subtract(df1=emolt_raw_df,df2=emolt_no_telemetry_result,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
-    emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
+    #emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
     #count ['std_temp'] and ['mean_temp'] again,get number likes that 12.33
     for i in emolt_no_telemetry_result.index:
         emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
         emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
+    emolt_no_telemetry_result=emolt_no_telemetry_result.sort_values(by=['vessel','datet'])
+    emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
     #save emolt_no_telemetry.csv
     if not os.path.exists(emolt_no_telemetry_save):
         os.makedirs(emolt_no_telemetry_save)
