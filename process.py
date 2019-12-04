@@ -66,6 +66,7 @@ def main():
     for i in emolt_no_telemetry_result.index:
         emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
         emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
+    #sort rank by columns of 'vessel' and 'datet'
     emolt_no_telemetry_result=emolt_no_telemetry_result.sort_values(by=['vessel','datet'])
     emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
     #save emolt_no_telemetry.csv
