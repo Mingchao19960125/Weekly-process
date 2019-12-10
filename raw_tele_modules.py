@@ -28,6 +28,7 @@ try:
 except ImportError:
     import pickle
 import json
+import traceback
 
 #HARDCODES
     
@@ -113,7 +114,7 @@ def lasthaul(df,mindepth=5):
         return new_df,0
 
 
-def check_reformat_data(indir,outdir,startt,endt,pstatus,rdnf,LSN2='7a',similarity=0.7,mindepth=10):
+def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a',similarity=0.7,mindepth=10):
     """
     input:
         indir:input directory
@@ -158,7 +159,6 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,rdnf,LSN2='7a',similari
         if file[len(file)-4:]=='.csv':
             if startt<=time_gmt<=endt:
                 file_lists.append(file)
-        
     #start check the data and save in the output_dir
     for file in file_lists:
         fpath,fname=os.path.split(file)  #get the file's path and name
@@ -197,11 +197,14 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,rdnf,LSN2='7a',similari
         if count==0: #if the file is test file,print it
             print ("test file:"+file)
             continue
-        df['Temperature(C)'] = df['Temperature(C)'].map(lambda x: '{0:.2f}'.format(float(x))) #keep two decimal fraction
+        try:
+            df['Temperature(C)'] = df['Temperature(C)'].map(lambda x: '{0:.2f}'.format(float(x))) #keep two decimal fraction
         #keep the lat and lon data format is right,such as 00000.0000w to 0000.0000
-        df['Lon'] = df['Lon'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))
-        df['Lat'] = df['Lat'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))#keep four decimal fraction
-        
+            df['Lon'] = df['Lon'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))
+            df['Lat'] = df['Lat'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))#keep four decimal fraction
+        except:
+            Write_Text(lack_data,file)
+            continue
         #Check if the header file contains all the information, and if it is wrong, fix it.
         for j in range(len(df_head)):#check and fix the vessel number 
             if df_head['key'][j].lower()=='Vessel Number'.lower():
@@ -706,7 +709,7 @@ def format_lat_lon(data):
     return data
 
 
-def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
+def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,lack_data,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
                    accept_minutes_diff=20,acceptable_distance_diff=2,dpi=300,Ttdepth=5):
     """
     start time and end time is utc time, and the format is datetime.datetime
@@ -794,115 +797,115 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
                 tele_dict[telemetrystatus_df['Boat'][j]]=tele_dict[telemetrystatus_df['Boat'][j]].append(pd.DataFrame(data=[[valuable_tele_df['time'][i],\
                          float(valuable_tele_df['temp'][i]),float(valuable_tele_df['depth'][i]),float(valuable_tele_df['lat'][i]),float(valuable_tele_df['lon'][i])]],\
                             columns=['time','mean_temp','mean_depth','mean_lat','mean_lon']).iloc[0],ignore_index=True)
-                
-    for file in file_lists: # loop raw files
-        fpath,fname=os.path.split(file)  #get the file's path and name
-        #match rawdata and telementry data
-        time_str=fname.split('.')[0].split('_')[2]+' '+fname.split('.')[0].split('_')[3]
-        #GMT time to local time of file
-        time_gmt=datetime.strptime(time_str,"%Y%m%d %H%M%S")
-        if time_gmt<start_time or time_gmt>end_time:
-            continue
-        
-        # now, read header and data of every file  
-        header_df=zl.nrows_len_to(file,2,name=['key','value']) #only header 
-        data_df=zl.skip_len_to(file,2) #only data
-        
-        #caculate the mean temperature and depth of every file
-        #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
-        value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
-        value_data_df=value_data_df.iloc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
-        value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
-                   (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
-        value_data_df.index = range(len(value_data_df))  #reindex
-        for i in range(len(value_data_df)):
-            value_data_df['Lat'][i],value_data_df['Lon'][i]=cv.dm2dd(value_data_df['Lat'][i],value_data_df['Lon'][i])
-        min_lat=min(value_data_df['Lat'].values)
-        max_lat=max(value_data_df['Lat'].values)
-        min_lon=min(value_data_df['Lon'].values)
-        max_lon=max(value_data_df['Lon'].values)
-        mean_lat=str(round(mean(value_data_df['Lat'].values),4))
-        mean_lon=str(round(mean(value_data_df['Lon'].values),4)) 
-        #mean_temp=str(round(mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))
-        #mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
-        mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][0:-1]),2)*100))
-        #std_temp=str(round(std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))  # standard deviation of bottom temps
-        #std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
-        std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][0:-1]),2)*100))
-        mean_depth=str(abs(int(round(mean(value_data_df['Depth(m)'].values))))).zfill(3)   #caculate the mean depth
-        range_depth=str(abs(int(round(max(value_data_df['Depth(m)'].values)-min(value_data_df['Depth(m)'].values))))).zfill(3) #caculate the mean depth
-        for i in header_df.index:#get the vessel number of every file
-            if header_df['key'][i].lower()=='vessel number'.lower():
-                vessel_number=int(header_df['value'][i])
-                break
-        #record number of raw files in every vessel,and min,max of lat and lon
-        for i in record_file_df.index:
-            if record_file_df['Vessel#'][i]==vessel_number:
-                if record_file_df['file_number'].isnull()[i]:
-                    record_file_df['min_lat'][i]=min_lat
-                    record_file_df['max_lat'][i]=max_lat
-                    record_file_df['min_lon'][i]=min_lon
-                    record_file_df['max_lon'][i]=max_lon
-                    record_file_df['file_number'][i]=1
-                else:
-                    record_file_df['file_number'][i]=int(record_file_df['file_number'][i]+1)
-                    if record_file_df['min_lat'][i]>min_lat:
-                        record_file_df['min_lat'][i]=min_lat
-                    if record_file_df['max_lat'][i]<max_lat:
-                        record_file_df['max_lat'][i]=max_lat
-                    if record_file_df['min_lon'][i]>min_lon:
-                        record_file_df['min_lon'][i]=min_lon
-                    if record_file_df['max_lon'][i]<max_lon:
-                        record_file_df['max_lon'][i]=max_lon
-                break
-        #write the data of raw file to dict
-        for i in telemetrystatus_df.index:
-            if telemetrystatus_df['Vessel#'][i]==vessel_number:                                                                  #time_local to time_gmt
-                raw_dict[telemetrystatus_df['Boat'][i]]=raw_dict[telemetrystatus_df['Boat'][i]].append(pd.DataFrame(data=[[time_gmt,\
-                                    fname,float(mean_temp),float(mean_depth),float(mean_lat),float(mean_lon)]],\
-                    columns=['time','filename','mean_temp','mean_depth','mean_lat','mean_lon']).iloc[0],ignore_index=True)
-                #caculate hours of emolt_raw_dict   
-                hours=(datetime.strptime(value_data_df['Datet(GMT)'][len(value_data_df)-1],"%Y-%m-%d %H:%M:%S")-datetime.strptime(value_data_df['Datet(GMT)'][0],"%Y-%m-%d %H:%M:%S")).days*24+\
-                (datetime.strptime(value_data_df['Datet(GMT)'][len(value_data_df)-1],"%Y-%m-%d %H:%M:%S")-datetime.strptime(value_data_df['Datet(GMT)'][0],"%Y-%m-%d %H:%M:%S")).seconds/3600
-                #Before comparing with emolt.dat get emolt_no_telemetry,created emolt_raw_dict   
-                emolt_raw_dict[telemetrystatus_df['Boat'][i]]=emolt_raw_dict[telemetrystatus_df['Boat'][i]].append(pd.DataFrame(data=[[telemetrystatus_df['Vessel#'][i],time_gmt,\
-                                    float(mean_lat),float(mean_lon),float(mean_depth),float(range_depth),"{:.3f}".format(hours),float(mean_temp),float(std_temp)]],\
-                    columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp']).iloc[0],ignore_index=True)
-                break
-        #calculate the numbers of successful matched, minimum,  maximum and mean values ​​of temperature difference and depth difference,and store this data in record file
-        lat,lon=value_data_df['Lat'][len(value_data_df)-1],value_data_df['Lon'][len(value_data_df)-1]
-        for i in valuable_tele_df.index:
-            if valuable_tele_df['vessel_n'][i].split('_')[1]==str(vessel_number):     
-                if abs(valuable_tele_df['time'][i]-time_gmt)<=timedelta(minutes=accept_minutes_diff):  #time match
-                    if zl.dist(lat1=lat,lon1=lon,lat2=float(valuable_tele_df['lat'][i]),lon2=float(valuable_tele_df['lon'][i]))<=acceptable_distance_diff:  #distance match               
-                        for j in record_file_df.index:
-                            if record_file_df['Vessel#'][j]==vessel_number:
-                                diff_temp=round((float(mean_temp)-float(valuable_tele_df['temp'][i])),4)
-                                diff_depth=round((float(mean_depth)-float(valuable_tele_df['depth'][i])),4)
-                                if record_file_df['matched_number'].isnull()[j]:
-                                    record_file_df['matched_number'][j]=1
-                                    record_file_df['sum_diff_temp'][j]=diff_temp
-                                    record_file_df['max_diff_temp'][j]=diff_temp
-                                    record_file_df['min_diff_temp'][j]=diff_temp
-                                    record_file_df['sum_diff_depth'][j]=diff_depth
-                                    record_file_df['max_diff_depth'][j]=diff_depth
-                                    record_file_df['min_diff_depth'][j]=diff_depth
-                                    
+    for file in file_lists: # loop raw files         
+         try:
+             fpath,fname=os.path.split(file)  #get the file's path and name
+             #match rawdata and telementry data
+             time_str=fname.split('.')[0].split('_')[2]+' '+fname.split('.')[0].split('_')[3]
+             #GMT time to local time of file
+             time_gmt=datetime.strptime(time_str,"%Y%m%d %H%M%S")
+             if time_gmt<start_time or time_gmt>end_time:
+                 continue
+            # now, read header and data of every file  
+             header_df=zl.nrows_len_to(file,2,name=['key','value']) #only header 
+             data_df=zl.skip_len_to(file,2) #only data
+            #caculate the mean temperature and depth of every file
+            #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
+             value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
+             value_data_df=value_data_df.iloc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
+             value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
+                                            (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
+             value_data_df.index = range(len(value_data_df))  #reindex
+             for i in range(len(value_data_df)):
+                value_data_df['Lat'][i],value_data_df['Lon'][i]=cv.dm2dd(value_data_df['Lat'][i],value_data_df['Lon'][i])
+             min_lat=min(value_data_df['Lat'].values)
+             max_lat=max(value_data_df['Lat'].values)
+             min_lon=min(value_data_df['Lon'].values)
+             max_lon=max(value_data_df['Lon'].values)
+             mean_lat=str(round(mean(value_data_df['Lat'].values),4))
+             mean_lon=str(round(mean(value_data_df['Lon'].values),4)) 
+            #mean_temp=str(round(mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))
+            #mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+             mean_temp=str(int(round(np.mean(value_data_df['Temperature(C)'][0:-1]),2)*100))
+            #std_temp=str(round(std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2))  # standard deviation of bottom temps
+            #std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][1:len(value_data_df)]),2)*100))
+             std_temp=str(int(round(np.std(value_data_df['Temperature(C)'][0:-1]),2)*100))
+             mean_depth=str(abs(int(round(mean(value_data_df['Depth(m)'].values))))).zfill(3)   #caculate the mean depth
+             range_depth=str(abs(int(round(max(value_data_df['Depth(m)'].values)-min(value_data_df['Depth(m)'].values))))).zfill(3) #caculate the mean depth
+             for i in header_df.index:#get the vessel number of every file
+                if header_df['key'][i].lower()=='vessel number'.lower():
+                    vessel_number=int(header_df['value'][i])
+                    break
+            #record number of raw files in every vessel,and min,max of lat and lon
+             for i in record_file_df.index:
+                if record_file_df['Vessel#'][i]==vessel_number:
+                                if record_file_df['file_number'].isnull()[i]:
+                                      record_file_df['min_lat'][i]=min_lat
+                                      record_file_df['max_lat'][i]=max_lat
+                                      record_file_df['min_lon'][i]=min_lon
+                                      record_file_df['max_lon'][i]=max_lon
+                                      record_file_df['file_number'][i]=1
                                 else:
-                                    record_file_df['matched_number'][j]=int(record_file_df['matched_number'][j]+1)
-                                    record_file_df['sum_diff_temp'][j]=record_file_df['sum_diff_temp'][j]+diff_temp
-                                    record_file_df['sum_diff_depth'][j]=record_file_df['sum_diff_depth'][j]+diff_depth
-                                    if record_file_df['max_diff_temp'][j]<diff_temp:
-                                        record_file_df['max_diff_temp'][j]=diff_temp
-                                    if record_file_df['min_diff_temp'][j]>diff_temp:
-                                        record_file_df['min_diff_temp'][j]=diff_temp
-                                    if record_file_df['max_diff_depth'][j]<diff_depth:
-                                        record_file_df['max_diff_depth'][j]=diff_depth
-                                    if record_file_df['min_diff_depth'][j]>diff_depth:
-                                        record_file_df['min_diff_depth'][j]=diff_depth
-                                valuable_tele_df.drop(i)
+                                    record_file_df['file_number'][i]=int(record_file_df['file_number'][i]+1)
+                                    if record_file_df['min_lat'][i]>min_lat:
+                                        record_file_df['min_lat'][i]=min_lat
+                                    if record_file_df['max_lat'][i]<max_lat:
+                                        record_file_df['max_lat'][i]=max_lat
+                                    if record_file_df['min_lon'][i]>min_lon:
+                                        record_file_df['min_lon'][i]=min_lon
+                                    if record_file_df['max_lon'][i]<max_lon:
+                                        record_file_df['max_lon'][i]=max_lon
                                 break
-                                            
+            #write the data of raw file to dict
+             for i in telemetrystatus_df.index:
+                if telemetrystatus_df['Vessel#'][i]==vessel_number:                                                                  #time_local to time_gmt
+                        raw_dict[telemetrystatus_df['Boat'][i]]=raw_dict[telemetrystatus_df['Boat'][i]].append(pd.DataFrame(data=[[time_gmt,\
+                                              fname,float(mean_temp),float(mean_depth),float(mean_lat),float(mean_lon)]],\
+                        columns=['time','filename','mean_temp','mean_depth','mean_lat','mean_lon']).iloc[0],ignore_index=True)
+                        #caculate hours of emolt_raw_dict   
+                        hours=(datetime.strptime(value_data_df['Datet(GMT)'][len(value_data_df)-1],"%Y-%m-%d %H:%M:%S")-datetime.strptime(value_data_df['Datet(GMT)'][0],"%Y-%m-%d %H:%M:%S")).days*24+\
+                        (datetime.strptime(value_data_df['Datet(GMT)'][len(value_data_df)-1],"%Y-%m-%d %H:%M:%S")-datetime.strptime(value_data_df['Datet(GMT)'][0],"%Y-%m-%d %H:%M:%S")).seconds/3600
+                        #Before comparing with emolt.dat get emolt_no_telemetry,created emolt_raw_dict   
+                        emolt_raw_dict[telemetrystatus_df['Boat'][i]]=emolt_raw_dict[telemetrystatus_df['Boat'][i]].append(pd.DataFrame(data=[[telemetrystatus_df['Vessel#'][i],time_gmt,\
+                                      float(mean_lat),float(mean_lon),float(mean_depth),float(range_depth),"{:.3f}".format(hours),float(mean_temp),float(std_temp)]],\
+                                      columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp']).iloc[0],ignore_index=True)
+                        break
+            #calculate the numbers of successful matched, minimum,  maximum and mean values ​​of temperature difference and depth difference,and store this data in record file
+             lat,lon=value_data_df['Lat'][len(value_data_df)-1],value_data_df['Lon'][len(value_data_df)-1]
+             for i in valuable_tele_df.index:
+                if valuable_tele_df['vessel_n'][i].split('_')[1]==str(vessel_number):     
+                    if abs(valuable_tele_df['time'][i]-time_gmt)<=timedelta(minutes=accept_minutes_diff):  #time match
+                        if zl.dist(lat1=lat,lon1=lon,lat2=float(valuable_tele_df['lat'][i]),lon2=float(valuable_tele_df['lon'][i]))<=acceptable_distance_diff:  #distance match               
+                            for j in record_file_df.index:
+                                if record_file_df['Vessel#'][j]==vessel_number:
+                                                  diff_temp=round((float(mean_temp)-float(valuable_tele_df['temp'][i])),4)
+                                                  diff_depth=round((float(mean_depth)-float(valuable_tele_df['depth'][i])),4)
+                                                  if record_file_df['matched_number'].isnull()[j]:
+                                                      record_file_df['matched_number'][j]=1
+                                                      record_file_df['sum_diff_temp'][j]=diff_temp
+                                                      record_file_df['max_diff_temp'][j]=diff_temp
+                                                      record_file_df['min_diff_temp'][j]=diff_temp
+                                                      record_file_df['sum_diff_depth'][j]=diff_depth
+                                                      record_file_df['max_diff_depth'][j]=diff_depth
+                                                      record_file_df['min_diff_depth'][j]=diff_depth
+                                    
+                                                  else:
+                                                      record_file_df['matched_number'][j]=int(record_file_df['matched_number'][j]+1)
+                                                      record_file_df['sum_diff_temp'][j]=record_file_df['sum_diff_temp'][j]+diff_temp
+                                                      record_file_df['sum_diff_depth'][j]=record_file_df['sum_diff_depth'][j]+diff_depth
+                                                      if record_file_df['max_diff_temp'][j]<diff_temp:
+                                                          record_file_df['max_diff_temp'][j]=diff_temp
+                                                      if record_file_df['min_diff_temp'][j]>diff_temp:
+                                                          record_file_df['min_diff_temp'][j]=diff_temp
+                                                      if record_file_df['max_diff_depth'][j]<diff_depth:
+                                                          record_file_df['max_diff_depth'][j]=diff_depth
+                                                      if record_file_df['min_diff_depth'][j]>diff_depth:
+                                                          record_file_df['min_diff_depth'][j]=diff_depth
+                                                  valuable_tele_df.drop(i)
+                                                  break
+         except:
+            Write_Text(file_name=lack_data,content=file)
+            continue                                        
                                 
     for i in record_file_df.index:
         counter=weekly_times(name=record_file_df['Boat'][i],tstart=start_time.strftime('%Y-%m-%d'),tend=end_time.strftime('%Y-%m-%d'))
@@ -1208,3 +1211,9 @@ def subtract(df1,df2,columns):
     df1=df1.append(df2)
     df1=df1.drop_duplicates(subset=columns,keep=False)
     return df1
+
+def Write_Text(file_name,content):
+    '''store content in file_name'''
+    with open(file_name,'a+') as f:
+        f.writelines(content)
+        f.writelines('\n')

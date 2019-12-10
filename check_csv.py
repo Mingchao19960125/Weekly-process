@@ -30,7 +30,9 @@ def main():
     #HARDCODING
     raw_data_name_file=os.path.join(parameterpath,'raw_data_name.txt')  #this data conclude the VP_NUM HULL_NUM VESSEL_NAME
     output_path=realpath.replace('py','result')  #use to save the data 
-    telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
+    #telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
+    telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
+    lack_data_path='/home/jmanning/leizhao/programe/raw_data_match/result/lack_data.txt'#store the name of file that lacked data after 'classfy finished'
     # below hardcodes is the informations to upload local data to student drifter. 
     subdir=['Matdata','checked']
     mremote='/Raw_Data'
@@ -38,7 +40,8 @@ def main():
     ###########################
     end_time=datetime.now()
     #start_time,end_time=week_start_end(end_time,interval=1)
-    start_time=end_time-timedelta(weeks=1)
+    #start_time=end_time-timedelta(weeks=1)
+    start_time=end_time-timedelta(days=339)
     #download raw data from website
     files=ftpdownload.download(os.path.join(output_path,'Matdata'),ftppath='/Matdata')
     #classify the file by every boat
@@ -46,7 +49,7 @@ def main():
     print('classfy finished!')
     #check the reformat of every file:include header,heading,lat,lon,depth,temperature.
     rdm.check_reformat_data(indir=os.path.join(output_path,'classified'),outdir=os.path.join(output_path,'checked'),startt=start_time,\
-                        endt=end_time,pstatus=telemetry_status,rdnf=raw_data_name_file)
+                        endt=end_time,pstatus=telemetry_status,rdnf=raw_data_name_file,lack_data=lack_data_path)
     print('check format finished!')
     for i in range(len(subdir)):
         local_dir=os.path.join(output_path,subdir[i])

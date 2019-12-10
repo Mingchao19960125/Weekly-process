@@ -26,16 +26,18 @@ def week_start_end(dtime,interval=0):
     return start_time,end_time    #start_time and end_time is different week wednesday morning 0:00:00
 def main():
     realpath=os.path.dirname(os.path.abspath(__file__))
-    parameterpath=realpath.replace('py','parameter')
+    #parameterpath=realpath.replace('py','parameter')
     #HARDCODING
     output_path=realpath.replace('py','result')  #use to save the data 
     picture_save=output_path+'/stats/' #use to save the picture
     emolt='https://www.nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
-    telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
+    #telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
+    telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
     emolt_raw_save='/home/jmanning/Mingchao/result'#output emolt_raw.csv
     emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'#input emolt_raw.csv 
     emolt_no_telemetry_save='/home/jmanning/Mingchao/result'#output emolt_no_telemetry.csv
     path='https://www.nefsc.noaa.gov/drifter/emolt.dat'#input emolt.dat
+    lack_data_path='/home/jmanning/leizhao/programe/raw_data_match/result/lack_data.txt'
     # below hardcodes is the informations to upload local data to student drifter. 
     subdir=['stats']    
     mremote='/Raw_Data'
@@ -43,13 +45,14 @@ def main():
     ###########################
     end_time=datetime.now()
     #start_time,end_time=week_start_end(end_time,interval=1)
-    start_time=end_time-timedelta(weeks=49)
+    #start_time=end_time-timedelta(weeks=1)
+    start_time=end_time-timedelta(days=339)
     if not os.path.exists(picture_save):
         os.makedirs(picture_save)
     print('match telemetered and raw data!')
     #match the telementry data with raw data, calculate the numbers of successful matched and the differnces of two data. finally , use the picture to show the result.
     dict=rdm.match_tele_raw(os.path.join(output_path,'checked'),path_save=os.path.join(picture_save,'statistics'),telemetry_path=emolt,telemetry_status=telemetry_status,\
-                        emolt_raw_save=emolt_raw_save,start_time=start_time,end_time=end_time,dpi=500)
+                        emolt_raw_save=emolt_raw_save,start_time=start_time,end_time=end_time,dpi=500,lack_data=lack_data_path)
     tele_df=rdm.read_telemetry(path)#get emolt.dat
     emolt_raw_df=pd.read_csv(emolt_raw_path,index_col=0)#get emolt_raw.csv
     #create a DataFrame for store emolt_no_telemetry
@@ -66,7 +69,6 @@ def main():
     for i in emolt_no_telemetry_result.index:
         emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
         emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
-    #sort rank by columns of 'vessel' and 'datet'
     emolt_no_telemetry_result=emolt_no_telemetry_result.sort_values(by=['vessel','datet'])
     emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
     #save emolt_no_telemetry.csv
