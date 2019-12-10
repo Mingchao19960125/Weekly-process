@@ -19,6 +19,6 @@ Nov 25,2019:
       change start_time to datetime.now-timedelta(weeks=1)
 Dec 10,2019:
 
-      create lack_data.txt to store the problem files before the functions of check_format data and match_tele_raw run
+      create lack_data.txt to store the problem files before the modules of check_format data and match_tele_raw run
 
 
