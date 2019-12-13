@@ -71,3 +71,4 @@
 /home/jmanning/leizhao/programe/raw_data_match/result/checked/Lisa_Ann_III/201910/li_7ada_20191019_121523.csv
 /home/jmanning/leizhao/programe/raw_data_match/result/checked/Lisa_Ann_III/201910/li_7ada_20191024_161539.csv
 /home/jmanning/leizhao/programe/raw_data_match/result/checked/Lisa_Ann_III/201910/li_7ada_20191015_145551.csv
+/home/jmanning/leizhao/programe/raw_data_match/result/checked/Sao_Paulo/201811/li_7adf_20181124_145937.csv
