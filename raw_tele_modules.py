@@ -4,6 +4,13 @@ Created on Wed Oct  3 12:39:15 2018
 update 2/21 2019
 update some the draw_time_series_plot fix the label of y axis
 @author: leizhao
+Nov 14,2019 Mingchao:
+   update match_tele_raw/raw_tele_modules.py to count number boats in statistics.csv by adding the key of tele_total_num
+Nov 25,2019 Mingchao:
+   update match_tele_raw/raw_tele_modules.py:By creating emolt_raw.csv to compares with emolt.dat and got the absent of  emolt.dat named emolt_no_telemetry.csv
+   change start_time to datetime.now-timedelta(weeks=1)
+Dec 10,2019 Mingchao:
+   create lack_data.txt to store the problem files before the modules of check_format data and match_tele_raw run
 """
 import conversions as cv
 import ftplib
