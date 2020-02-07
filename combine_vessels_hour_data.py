@@ -20,7 +20,7 @@ from pylab import mean, std
 #Hardcodes
 input_dir='/home/jmanning/leizhao/programe/raw_data_match/result/checked/'
 end_time=datetime.now()
-start_time=end_time-timedelta(days=129)
+start_time=end_time-timedelta(days=130)
 #start_time=end_time-timedelta(weeks=1)
 Hours_save='/home/jmanning/Mingchao/result/Hours_data/'
     
@@ -48,14 +48,17 @@ try:
         value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
                             (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
         value_data_df.index = range(len(value_data_df))  #reindex
+        value_data_df['Datet(Y/m/d)']=1
         for i in range(len(value_data_df)):
             value_data_df['Lat'][i],value_data_df['Lon'][i]=cv.dm2dd(value_data_df['Lat'][i],value_data_df['Lon'][i])
-        Hours_df=pd.DataFrame(data=None,columns=['time','lat','lon','depth','temp'])
+            value_data_df['Datet(Y/m/d)'][i]=datetime.strptime(value_data_df['Datet(GMT)'][i],'%Y-%m-%d %H:%M:%S').date()
+        Hours_df=pd.DataFrame(data=None,columns=['time','lat','lon','depth','temp','new_time'])
         Hours_df['time']=value_data_df['Datet(GMT)']
         Hours_df['lat']=value_data_df['Lat']
         Hours_df['lon']=value_data_df['Lon']
         Hours_df['depth']=value_data_df['Depth(m)']
         Hours_df['temp']=value_data_df['Temperature(C)']
+        Hours_df['new_time']=value_data_df['Datet(Y/m/d)']
         if not os.path.exists(Hours_save+file.split('/')[8]):
             os.makedirs(Hours_save+file.split('/')[8])
         Hours_df.to_csv(os.path.join(Hours_save+file.split('/')[8]+'/',file.split('/')[8]+'#'+file.split('/')[10]),index=0)
@@ -65,12 +68,12 @@ try:
             dl.append(pd.read_csv(hoursfile_lists[k],index_col=None))
         new_df=pd.concat(dl)
         new_df.drop_duplicates(subset=['time','depth'],inplace=True)
+        new_df=new_df.sort_values(by='time',axis=0,ascending=True)
+        new_df.index=range(len(new_df))
         new_df.to_csv(os.path.join(Hours_save+file.split('/')[8]+'/',hoursfile_lists[k].split('#')[0].split('/')[6]+'_hours.csv'),index=0)
 except:
     print('check if the files exists')
-
-
-
+         
 
 
        
