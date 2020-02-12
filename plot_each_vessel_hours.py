@@ -74,7 +74,7 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         #ax2.xaxis.set_minor_formatter(dates.DateFormatter('%H'))
         #ax2.tick_params(pad=10)
         fig.autofmt_xdate()
-        plt.gcf().autofmt_xdate()
+        #plt.gcf().autofmt_xdate()
         if not os.path.exists(os.path.join(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')):
             os.makedirs(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')
         plt.savefig(os.path.join(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')+vessel_lists[i].split('/')[6].split('_hours')[0]+'_hours.ps',dpi=dpi,orientation='landscape')
@@ -83,7 +83,8 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         
 #main
 hours_lists=zl.list_all_files(Hours_save)
-vessel_lists=[]
+vessel_lists=[]#store the path of every vessel's file
+#Loop every vessel's file and Plot
 for file in hours_lists:
    if file[len(file)-9:]=='hours.csv':
      vessel_lists.append(file)                

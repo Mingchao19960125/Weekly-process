@@ -3,7 +3,7 @@
 """
 Created on Fri Jan 31 15:47:29 2020
 
-Concatenated each vessel's raw data of hours to one file named likes 'Virginia_Marise_hours.csv'.
+Concatenated each vessel's raw data to one file named likes 'Virginia_Marise_hours.csv'.
 
 Input:raw data from check_csv.py
 Output:Vessel name+_hours.csv
@@ -26,15 +26,15 @@ Hours_save='/home/jmanning/Mingchao/result/Hours_data/'
     
 #main
 allfile_lists=zl.list_all_files(input_dir)
-file_lists=[]
+file_lists=[]#store the path of every vessel's files
 hoursfile_lists=zl.list_all_files(Hours_save)
+#filter the raw files and store in file_lists
 for file in allfile_lists:
    if file[len(file)-4:]=='.csv':
      file_lists.append(file)
 try:
     for file in file_lists: # loop raw files         
         fpath,fname=os.path.split(file)  #get the file's path and name
-    #match rawdata and telementry data
         time_str=fname.split('.')[0].split('_')[2]+' '+fname.split('.')[0].split('_')[3]
     #GMT time to local time of file
         time_gmt=datetime.strptime(time_str,"%Y%m%d %H%M%S")
@@ -48,7 +48,7 @@ try:
         value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
                             (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
         value_data_df.index = range(len(value_data_df))  #reindex
-        value_data_df['Datet(Y/m/d)']=1
+        value_data_df['Datet(Y/m/d)']=1 #create a new column for saving another time style of '%Y-%m-%d'
         for i in range(len(value_data_df)):
             value_data_df['Lat'][i],value_data_df['Lon'][i]=cv.dm2dd(value_data_df['Lat'][i],value_data_df['Lon'][i])
             value_data_df['Datet(Y/m/d)'][i]=datetime.strptime(value_data_df['Datet(GMT)'][i],'%Y-%m-%d %H:%M:%S').date()
@@ -68,7 +68,7 @@ try:
             dl.append(pd.read_csv(hoursfile_lists[k],index_col=None))
         new_df=pd.concat(dl)
         new_df.drop_duplicates(subset=['time','depth'],inplace=True)
-        new_df=new_df.sort_values(by='time',axis=0,ascending=True)
+        new_df=new_df.sort_values(by='time',axis=0,ascending=True)#sorting by the column of time
         new_df.index=range(len(new_df))
         new_df.to_csv(os.path.join(Hours_save+file.split('/')[8]+'/',hoursfile_lists[k].split('#')[0].split('/')[6]+'_hours.csv'),index=0)
 except:
