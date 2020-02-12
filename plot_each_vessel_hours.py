@@ -13,7 +13,7 @@ import os
 import pandas as pd
 import zlconversions as zl
 import matplotlib.dates as dates
-from datetime import timedelta
+import datetime
 import matplotlib
 #Hardcodes
 Hours_save='/home/jmanning/Mingchao/result/Hours_data/'
@@ -47,7 +47,7 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         ax1.set_title(new_df['time'][0]+' to '+new_df['time'][len(new_df)-1])
         #ax1.plot_date(new_df['time'],new_df['temp'],linewidth=linewidth,linestyle=linestyle,color=color,alpha=alpha,marker=marker,markerfacecolor=markerfacecolor)
         #ax1.plot_date(new_df['time'][0::60],new_df['temp'][0::60],linewidth=linewidth,linestyle=linestyle,color=color,alpha=alpha,marker=marker,markerfacecolor=markerfacecolor)
-        ax1.plot(new_df['time'][0::60],new_df['temp'][0::60],color='b')
+        ax1.plot(new_df['new_time'][0::60],new_df['temp'][0::60],color='b')
         #ax1.plot(new_df['time'],new_df['temp'],color='b')#[0::60] #every minutes
         ax1.legend(prop={'size': 1.5*size})
         ax1.set_ylabel('Celsius',fontsize=2*size)
@@ -56,25 +56,18 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         #ax2.plot_date(new_df['time'],new_df['depth'],linewidth=linewidth,linestyle=linestyle,color='R',alpha=alpha,marker=marker,markerfacecolor='R')
         #ax2.plot_date(new_df['time'][0::60],new_df['depth'][0::60],linewidth=linewidth,linestyle=linestyle,color='R',alpha=alpha,marker=marker,markerfacecolor='R')
         #ax2.plot(new_df['time'][0::60],new_df['depth'][0::60],color='R')
+        #new_df['new_time']=pd.to_datetime(new_df['new_time'])
         ax2.plot(new_df['new_time'][0::60],new_df['depth'][0::60],color='R')
         ax2.legend(prop={'size':1.5* size})
         ax2.set_ylabel('depth(m)',fontsize=2*size)
         ax2.set_ylim(MAX_D+dextend_lim,MIN_D-dextend_lim)
         #ax2.tick_params(labelsize=1.5*size)
         #plt.gca().xaxis.set_major_locator(plt.MaxNLocator(10))
-        ax2.xaxis.set_major_locator(plt.AutoLocator())
-        #ax2.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
-        #plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
-        #plt.gca().xaxis.set_major_locator(dates.HourLocator(interval=1))
-        #alldays=dates.DayLocator()
-        #ax2.xaxis.set_major_locator(alldays)
-        #ax2.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
-        #hoursLoc=dates.HourLocator(interval=2)
-        #ax2.xaxis.set_minor_locator(hoursLoc)
-        #ax2.xaxis.set_minor_formatter(dates.DateFormatter('%H'))
-        #ax2.tick_params(pad=10)
-        fig.autofmt_xdate()
-        #plt.gcf().autofmt_xdate()
+        ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
+        #ax2.xaxis.set_major_locator(plt.AutoLocator())
+        plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+        #fig.autofmt_xdate()
+        plt.gcf().autofmt_xdate()
         if not os.path.exists(os.path.join(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')):
             os.makedirs(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')
         plt.savefig(os.path.join(Hours_save+vessel_lists[i].split('/')[6].split('_hours')[0]+'/')+vessel_lists[i].split('/')[6].split('_hours')[0]+'_hours.ps',dpi=dpi,orientation='landscape')

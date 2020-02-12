@@ -51,13 +51,14 @@ try:
         value_data_df['Datet(Y/m/d)']=1 #create a new column for saving another time style of '%Y-%m-%d'
         for i in range(len(value_data_df)):
             value_data_df['Lat'][i],value_data_df['Lon'][i]=cv.dm2dd(value_data_df['Lat'][i],value_data_df['Lon'][i])
-            value_data_df['Datet(Y/m/d)'][i]=datetime.strptime(value_data_df['Datet(GMT)'][i],'%Y-%m-%d %H:%M:%S').date()
+            value_data_df['Datet(Y/m/d)'][i]=datetime.strptime(value_data_df['Datet(GMT)'][i],'%Y-%m-%d %H:%M:%S')
         Hours_df=pd.DataFrame(data=None,columns=['time','lat','lon','depth','temp','new_time'])
         Hours_df['time']=value_data_df['Datet(GMT)']
         Hours_df['lat']=value_data_df['Lat']
         Hours_df['lon']=value_data_df['Lon']
         Hours_df['depth']=value_data_df['Depth(m)']
         Hours_df['temp']=value_data_df['Temperature(C)']
+        value_data_df['Datet(Y/m/d)']=pd.to_datetime(value_data_df['Datet(Y/m/d)'])#change the time style to datetime
         Hours_df['new_time']=value_data_df['Datet(Y/m/d)']
         if not os.path.exists(Hours_save+file.split('/')[8]):
             os.makedirs(Hours_save+file.split('/')[8])
