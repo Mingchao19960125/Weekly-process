@@ -47,7 +47,7 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         ax1.set_title(new_df['time'][0]+' to '+new_df['time'][len(new_df)-1])
         #ax1.plot_date(new_df['time'],new_df['temp'],linewidth=linewidth,linestyle=linestyle,color=color,alpha=alpha,marker=marker,markerfacecolor=markerfacecolor)
         #ax1.plot_date(new_df['time'][0::60],new_df['temp'][0::60],linewidth=linewidth,linestyle=linestyle,color=color,alpha=alpha,marker=marker,markerfacecolor=markerfacecolor)
-        ax1.plot(new_df['new_time'][0::60],new_df['temp'][0::60],color='b')
+        ax1.plot(new_df['time'][0::60],new_df['temp'][0::60],color='b')
         #ax1.plot(new_df['time'],new_df['temp'],color='b')#[0::60] #every minutes
         ax1.legend(prop={'size': 1.5*size})
         ax1.set_ylabel('Celsius',fontsize=2*size)
@@ -56,7 +56,7 @@ def plot(vessel_lists,Hours_save,new_df,dpi=300):
         #ax2.plot_date(new_df['time'],new_df['depth'],linewidth=linewidth,linestyle=linestyle,color='R',alpha=alpha,marker=marker,markerfacecolor='R')
         #ax2.plot_date(new_df['time'][0::60],new_df['depth'][0::60],linewidth=linewidth,linestyle=linestyle,color='R',alpha=alpha,marker=marker,markerfacecolor='R')
         #ax2.plot(new_df['time'][0::60],new_df['depth'][0::60],color='R')
-        #new_df['new_time']=pd.to_datetime(new_df['new_time'])
+        new_df['new_time']=pd.to_datetime(new_df['new_time'])#change the time style to datetime
         ax2.plot(new_df['new_time'][0::60],new_df['depth'][0::60],color='R')
         ax2.legend(prop={'size':1.5* size})
         ax2.set_ylabel('depth(m)',fontsize=2*size)

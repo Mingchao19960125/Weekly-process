@@ -20,7 +20,7 @@ from pylab import mean, std
 #Hardcodes
 input_dir='/home/jmanning/leizhao/programe/raw_data_match/result/checked/'
 end_time=datetime.now()
-start_time=end_time-timedelta(days=130)
+start_time=end_time-timedelta(days=170)
 #start_time=end_time-timedelta(weeks=1)
 Hours_save='/home/jmanning/Mingchao/result/Hours_data/'
     
@@ -58,7 +58,7 @@ try:
         Hours_df['lon']=value_data_df['Lon']
         Hours_df['depth']=value_data_df['Depth(m)']
         Hours_df['temp']=value_data_df['Temperature(C)']
-        value_data_df['Datet(Y/m/d)']=pd.to_datetime(value_data_df['Datet(Y/m/d)'])#change the time style to datetime
+        #value_data_df['Datet(Y/m/d)']=pd.to_datetime(value_data_df['Datet(Y/m/d)'])#change the time style to datetime
         Hours_df['new_time']=value_data_df['Datet(Y/m/d)']
         if not os.path.exists(Hours_save+file.split('/')[8]):
             os.makedirs(Hours_save+file.split('/')[8])
@@ -66,7 +66,7 @@ try:
         hoursfile_lists=zl.list_all_files(Hours_save+file.split('/')[8]+'/')
         dl=[]
         for k in range(len(hoursfile_lists)):
-            dl.append(pd.read_csv(hoursfile_lists[k],index_col=None))
+            dl.append(pd.read_csv(hoursfile_lists[k],index_col=None))#contact values belong to one vessel
         new_df=pd.concat(dl)
         new_df.drop_duplicates(subset=['time','depth'],inplace=True)
         new_df=new_df.sort_values(by='time',axis=0,ascending=True)#sorting by the column of time
