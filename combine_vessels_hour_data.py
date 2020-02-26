@@ -19,7 +19,8 @@ from pylab import mean, std
 
 #Hardcodes
 input_dir='/home/jmanning/leizhao/programe/raw_data_match/result/checked/'
-end_time=datetime.now()
+#end_time=datetime.now()
+end_time=datetime.utcnow()
 start_time=end_time-timedelta(days=170)
 #start_time=end_time-timedelta(weeks=1)
 Hours_save='/home/jmanning/Mingchao/result/Hours_data/'
