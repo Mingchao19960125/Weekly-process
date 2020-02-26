@@ -735,8 +735,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
 #    start_time_local=datetime.strptime(start_time,'%Y-%m-%d')
 #    end_time_local=datetime.strptime(end_time,'%Y-%m-%d')
     
-#    start_time_utc=zl.local2utc(start_time)
-#    end_time_utc=zl.local2utc(end_time)
+    start_time=zl.local2utc(start_time)#change local time to utc time
+    end_time=zl.local2utc(end_time)
     
     ######################
     allfile_lists=zl.list_all_files(input_dir)
@@ -774,7 +774,6 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
         raw_dict[i]=pd.DataFrame(data=None,columns=['time','filename','mean_temp','mean_depth','mean_lat','mean_lon'])
         tele_dict[i]=pd.DataFrame(data=None,columns=['time','mean_temp','mean_depth','mean_lat','mean_lon'])
         emolt_raw_dict[i]=pd.DataFrame(data=None,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
-   
     #write 'time','mean_temp','mean_depth' of the telementry to tele_dict            
     for i in valuable_tele_df.index:  #valuable_tele_df is the valuable telemetry data during start time and end time 
         for j in telemetrystatus_df.index:
@@ -818,7 +817,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
              data_df=zl.skip_len_to(file,2) #only data
             #caculate the mean temperature and depth of every file
             #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
-             value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
+             #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
+             value_data_df=data_df.loc[(data_df['Depth(m)']>0.95*max(data_df['Depth(m)']))]  #filter the data
              value_data_df=value_data_df.iloc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
              value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
                                             (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
@@ -934,8 +934,7 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
     for i in telemetrystatus_df['Boat']:#loop every boat,
         raw_dict[i]=raw_dict[i].sort_values(by=['time'])
         raw_dict[i].index=range(len(raw_dict[i]))
-        
-    
+
     total_tele,total_file,total_matched=0,0,0
     for i in record_file_df.index:
         total_tele+=record_file_df['tele_num'][i]

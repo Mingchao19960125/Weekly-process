@@ -32,7 +32,8 @@ def main():
     picture_save=output_path+'/stats/' #use to save the picture
     emolt='https://www.nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
     #telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
-    telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
+    #telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
+    telemetry_status='/home/jmanning/leizhao/programe/aqmain/parameter/telemetry_status.csv'
     emolt_raw_save='/home/jmanning/Mingchao/result'#output emolt_raw.csv
     emolt_raw_path='/home/jmanning/Mingchao/result/emolt_raw.csv'#input emolt_raw.csv 
     emolt_no_telemetry_save='/home/jmanning/Mingchao/result'#output emolt_no_telemetry.csv
@@ -43,10 +44,12 @@ def main():
     mremote='/Raw_Data'
     remote_subdir=['stats']
     ###########################
-    end_time=datetime.now()
+    end_time=datetime.now()#input local time,in match_tele_raw will change to UTCtime
+    #end_time=datetime.now()-timedelta(days=346)
     #start_time,end_time=week_start_end(end_time,interval=1)
-    #start_time=end_time-timedelta(weeks=1)
-    start_time=end_time-timedelta(days=339)
+    start_time=end_time-timedelta(weeks=1)
+    #start_time=end_time-timedelta(days=1460)
+    #start_time=end_time-timedelta(days=557)
     if not os.path.exists(picture_save):
         os.makedirs(picture_save)
     print('match telemetered and raw data!')
