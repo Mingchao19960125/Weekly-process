@@ -4,7 +4,6 @@ Created on Mon Apr 29 13:09:10 2019
 @author: leizhao
 """
 import json
-#import pickle
 import sys
 import numpy as np
 from datetime import datetime,timedelta
@@ -117,6 +116,7 @@ def C2F(T):
     return 32+1.8*T
 
 def all_boat_map(df,path_save,telemetrystatus_df):
+#def all_boat_map(df,path_save,telemetrystatus_df,start_time,end_time):
     '''input a dataframe,below must be have this information in dataframe:
         name, time,lon,lat,observation temperature, climate temperature, the number of files in interval
         output a html map, below is the informat in this map.
@@ -141,6 +141,8 @@ def all_boat_map(df,path_save,telemetrystatus_df):
 #    folium.LayerControl().add_to(map)
     for i in df.index:  #maker the location
         start_t,end_t=week_start_end(df['time'][i])
+        #start_t = start_time
+        #end_t = end_time
         if df['obstemp'][i]>df['climtemp'][i]:
             mark_color='red'
         else:
@@ -259,12 +261,14 @@ def week_start_end(dtime,interval=0):
 a=1
 if a==1:
     #hardcode
-    filepathread='/home/jmanning/Mingchao/programe/Semi_Annual/semi_annual-master/dictionary.json'
-#    filepathread='home/jmanning/leizhao/programe/diff_modules/result/data_dict/dict_obsdpogmf0529.p'
+    filepathread='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'
     path_save='/home/jmanning/leizhao/programe/diff_modules/result/differentmap/'
-    telemetry_status='/home/jmanning/leizhao/programe/diff_modules/parameter/telemetry_status.csv'
-    end_time=datetime.now()
-    start_time,end_time=week_start_end(end_time,interval=1) #the interval=1, menas the week is the last week of this time.
+    telemetry_status='/home/jmanning/leizhao/programe/aqmain/parameter/telemetry_status.csv'
+    #end_time=datetime.now()
+    end_time=datetime.utcnow()
+
+    #start_time,end_time=week_start_end(end_time,interval=1) #the interval=1, menas the week is the last week of this time.
+    start_time=end_time-timedelta(weeks=1)
     ####
     try:
         with open(filepathread,'r') as fp:
@@ -311,8 +315,10 @@ if a==1:
     if len(df)!=0:
         #df=df.dropna()
         df.index=range(len(df))
-        all_boat_map(df,path_save,telemetrystatus_df) 
+        all_boat_map(df,path_save,telemetrystatus_df)
+        #all_boat_map(df,path_save,telemetrystatus_df,start_time,end_time)
         #    for i in df.index:
         #        per_boat_map(df.iloc[i],path_save,dpi=300) 
                 
         
+
