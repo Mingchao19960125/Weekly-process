@@ -163,8 +163,9 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
         fpath,fname=os.path.split(file)  #get the file's path and name
         time_str=fname.split('.')[0].split('_')[2]+' '+fname.split('.')[0].split('_')[3]
         time_gmt=datetime.strptime(time_str,"%Y%m%d %H%M%S")
+        time_local=zl.utc2local(time_gmt)#UTC time to local time
         if file[len(file)-4:]=='.csv':
-            if startt<=time_gmt<=endt:
+            if startt<=time_local<=endt:
                 file_lists.append(file)
     #start check the data and save in the output_dir
     for file in file_lists:
@@ -531,6 +532,11 @@ def download(psave,startt=datetime.strptime('2000-1-1','%Y-%m-%d'),endt=datetime
 def draw_time_series_plot(raw_dict,tele_dict,name,start_time,end_time,path_picture_save,record_file,dpi=300):
     """use to draw the time series plot"""
     
+    start_time_local=start_time
+    end_time_local=end_time
+    start_time=zl.local2utc(start_time)
+    end_time=zl.local2utc(end_time)#change local time to utc time
+    
     fig=plt.figure(figsize=(7,4))
     fig.suptitle(name+'\n'+'matches:'+str(int(record_file['matched_number']))+'   telemetered:'+\
                          str(int(record_file['tele_num']))+'   raw_data_uploaded:'+str(int(record_file['file_number'])),fontsize=8, fontweight='bold')
@@ -605,7 +611,8 @@ def draw_time_series_plot(raw_dict,tele_dict,name,start_time,end_time,path_pictu
     path=os.path.join(path_picture_save,name)
     if not os.path.exists(path):
         os.makedirs(path)
-    plt.savefig(path+'/'+start_time.strftime('%Y-%m-%d')+'_'+end_time.strftime('%Y-%m-%d')+'.png',dpi=dpi)
+    #plt.savefig(path+'/'+start_time.strftime('%Y-%m-%d')+'_'+end_time.strftime('%Y-%m-%d')+'.png',dpi=dpi)
+    plt.savefig(path+'/'+start_time_local.strftime('%Y-%m-%d')+'_'+end_time_local.strftime('%Y-%m-%d')+'.png',dpi=dpi)
  
 
 def draw_map(raw_df,tele_df,name,start_time_local,end_time_local,path_picture_save,dpi=300):
@@ -734,7 +741,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
     #transfer the time format of string to datetime 
 #    start_time_local=datetime.strptime(start_time,'%Y-%m-%d')
 #    end_time_local=datetime.strptime(end_time,'%Y-%m-%d')
-    
+    start_time_local=start_time
+    end_time_local=end_time
     start_time=zl.local2utc(start_time)#change local time to utc time
     end_time=zl.local2utc(end_time)
     
@@ -954,7 +962,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
     #save the record file
     if not os.path.exists(path_save):
             os.makedirs(path_save)
-    record_file_df.to_csv(os.path.join(path_save,start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv'),index=0) 
+    #record_file_df.to_csv(os.path.join(path_save,start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv'),index=0)
+    record_file_df.to_csv(os.path.join(path_save,start_time_local.strftime('%Y%m%d')+'_'+end_time_local.strftime('%Y%m%d')+'_statistics.csv'),index=0)
     dict={}
     dict['raw_dict']=raw_dict
     dict['tele_dict']=tele_dict

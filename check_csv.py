@@ -3,6 +3,9 @@
 """
 Created on Tue Jul 23 14:32:42 2019
 
+Feb 28,2020 Mingchao
+    input local time,then change the time style in functions of raw_tele_modules for filtering the data
+
 @author: leizhao
 """
 
@@ -31,17 +34,18 @@ def main():
     raw_data_name_file=os.path.join(parameterpath,'raw_data_name.txt')  #this data conclude the VP_NUM HULL_NUM VESSEL_NAME
     output_path=realpath.replace('py','result')  #use to save the data 
     #telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
-    telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
+    telemetry_status='/home/jmanning/leizhao/programe/aqmain/parameter/telemetry_status.csv'
     lack_data_path='/home/jmanning/leizhao/programe/raw_data_match/result/lack_data.txt'#store the name of file that lacked data after 'classfy finished'
     # below hardcodes is the informations to upload local data to student drifter. 
     subdir=['Matdata','checked']
     mremote='/Raw_Data'
     remote_subdir=['Matdata','checked']
     ###########################
-    end_time=datetime.now()
+    end_time=datetime.now()#Feb 28,2020 Mingchao add use local time
+    #end_time=datetime.now()-timedelta(days=346)
     #start_time,end_time=week_start_end(end_time,interval=1)
-    #start_time=end_time-timedelta(weeks=1)
-    start_time=end_time-timedelta(days=339)
+    start_time=end_time-timedelta(weeks=1)
+    #start_time=end_time-timedelta(days=557)
     #download raw data from website
     files=ftpdownload.download(os.path.join(output_path,'Matdata'),ftppath='/Matdata')
     #classify the file by every boat
