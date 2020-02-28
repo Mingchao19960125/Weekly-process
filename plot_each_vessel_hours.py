@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb  4 13:08:35 2020
-Plot each vessels' raw data of hours
+Plot each vessels' raw data of hours,the title is GMT time style
 Input:each vessels' raw data of hours
 Output:time series plot of temp and depth of each vessels' raw data of hours
 
