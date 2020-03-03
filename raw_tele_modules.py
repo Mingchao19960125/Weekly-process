@@ -1218,13 +1218,18 @@ def emolt_no_telemetry_df(tele_df,emolt_raw_df,emolt_no_telemetry_df):
                                     #emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
                         #else:
                         if emolt_time-time_range<=datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S")<=emolt_time+time_range:
-                            emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
+                             emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
+                             emolt_no_telemetry_df.index=range(len(emolt_no_telemetry_df))
+                        #drop the data had wrong position,but raw data is fine
+                             if not tele_df['lat'][j]-1<=emolt_raw_df['lat'][i]<=tele_df['lat'][j]+1 or tele_df['lon'][j]+1<=emolt_raw_df['lon'][i]<=tele_df['lon'][j]-1:
+                                emolt_no_telemetry_df=emolt_no_telemetry_df.drop([len(emolt_no_telemetry_df)-1])
     return emolt_no_telemetry_df
 def subtract(df1,df2,columns):
     '''df1 subtracts df2,get the rest of df1'''
     df1=df1.append(df2)
     df1=df1.append(df2)
     df1=df1.drop_duplicates(subset=columns,keep=False)
+    #df1=df1.drop_duplicates(subset=columns,keep='first')#keep='first' is to Remove first occurrence of duplicates
     return df1
 
 def Write_Text(file_name,content):

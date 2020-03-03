@@ -6,6 +6,9 @@ funtion, contact the raw_data_download.py,classify_by_boat.py
 check_reformat_data.py and match_tele_raw.py
 finally: output the plot and statistics every week
 
+Mar 3,2020 Mingchao
+    1.append emolt_no_telemetry every week
+    2.the telemetry data have wrong lat and lon,but raw data have right lat and lon,we will compare them and put right raw data in emolt_no_telemetry
 @author: leizhao
 """
 
