@@ -24,7 +24,7 @@ Dec 10,2019:
 
 Jan 2020:
 
-      combine_vessels_hour_data.py:Concatenated each vessel's raw data to one file named likes 'Virginia_Marise_hours.csv'.
+      combine_vessels_hour_data.py:Contact each vessel's raw data to one file named likes 'Virginia_Marise_hours.csv'.
       plot_each_vessel_hours.py:Plot each vessels' raw data of hours
 
 Feb 2020:
