@@ -22,4 +22,15 @@ Dec 10,2019:
 
       create lack_data.txt to store the problem files before the modules of check_format data and match_tele_raw run
 
+Jan 2020:
+
+      combine_vessels_hour_data.py:Concatenated each vessel's raw data to one file named likes 'Virginia_Marise_hours.csv'.
+      plot_each_vessel_hours.py:Plot each vessels' raw data of hours
+
+Feb 2020:
+
+    Change the time to UTC
+    Append emolt_no_telemetry every week
+    the telemetry data have wrong lat and lon,but raw data have right lat and lon.we will compare them and put right raw data in emolt_no_telemetry
+
 
