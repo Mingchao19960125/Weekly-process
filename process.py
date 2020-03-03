@@ -72,12 +72,18 @@ def main():
     for i in emolt_no_telemetry_result.index:
         emolt_no_telemetry_result['std_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['std_temp'][i]/100)
         emolt_no_telemetry_result['mean_temp'][i]="{:.2f}".format(emolt_no_telemetry_result['mean_temp'][i]/100)
-    emolt_no_telemetry_result=emolt_no_telemetry_result.sort_values(by=['vessel','datet'])
-    emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
+    #emolt_no_telemetry_result=emolt_no_telemetry_result.sort_values(by=['vessel','datet'])
+    #emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
     #save emolt_no_telemetry.csv
     if not os.path.exists(emolt_no_telemetry_save):
         os.makedirs(emolt_no_telemetry_save)
-    emolt_no_telemetry_result.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
+    #append every week
+    emolt_no_telemetry=pd.read_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
+    emolt_no_telemetry=emolt_no_telemetry.append(emolt_no_telemetry_result)
+    emolt_no_telemetry=emolt_no_telemetry.sort_values(by=['vessel','datet'])
+    emolt_no_telemetry.index=range(len(emolt_no_telemetry))
+    emolt_no_telemetry.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
+    #emolt_no_telemetry_result.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
     tele_dict=dict['tele_dict']
     raw_dict=dict['raw_dict']
     record_file_df=dict['record_file_df']
