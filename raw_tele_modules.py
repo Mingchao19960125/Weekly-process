@@ -11,6 +11,8 @@ Nov 25,2019 Mingchao:
    change start_time to datetime.now-timedelta(weeks=1)
 Dec 10,2019 Mingchao:
    create lack_data.txt to store the problem files before the modules of check_format data and match_tele_raw run
+Mar 5,2020 Jim&Mingchao
+    filter the values that constant in >5 records and the values not enough 10 minutes
 """
 import conversions as cv
 import ftplib
@@ -121,7 +123,7 @@ def lasthaul(df,mindepth=5):
         return new_df,0
 
 
-def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a',similarity=0.7,mindepth=10):
+def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a',similarity=0.7,mindepth=10,min_minutes=timedelta(minutes=10),percentage_aceeeptable=0.25):
     """
     input:
         indir:input directory
@@ -163,9 +165,9 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
         fpath,fname=os.path.split(file)  #get the file's path and name
         time_str=fname.split('.')[0].split('_')[2]+' '+fname.split('.')[0].split('_')[3]
         time_gmt=datetime.strptime(time_str,"%Y%m%d %H%M%S")
-        time_local=zl.utc2local(time_gmt)#UTC time to local time
+        #time_local=zl.utc2local(time_gmt)#UTC time to local time
         if file[len(file)-4:]=='.csv':
-            if startt<=time_local<=endt:
+            if startt<=time_gmt<=endt:
                 file_lists.append(file)
     #start check the data and save in the output_dir
     for file in file_lists:
@@ -191,6 +193,21 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
             df.insert(0,'HEADING','DATA')
         df.columns = ['HEADING','Datet(GMT)','Lat','Lon','Temperature(C)','Depth(m)']  #rename the name of conlum of data
         df['Depth(m)'] = df['Depth(m)'].map(lambda x: '{0:.2f}'.format(float(x)))  #keep two decimal fraction
+        #Jim&Mingchao 10,Mar,2020 filter the values that constant in >5 records
+        dfs = df['Depth(m)'].map(lambda x: float(x))#change type of str to float
+        diffs = np.diff(dfs)
+        u,c = np.unique(diffs,return_counts=True)
+        if c[np.where(u==0)] > len(df)*percentage_aceeeptable:
+            print('pressure problem:'+file)
+            Write_Text(lack_data,file)
+            continue
+        #Jim&Mingchao 10,Mar,2020 filter the values not enough min minutes
+        dts=pd.to_datetime(df['Datet(GMT)'])
+        total_diffs=dts[len(dts)-1]-dts[0]
+        if total_diffs < min_minutes:
+            print('bad data! time not more than 10 minutes:'+file)
+            Write_Text(lack_data,file)#record the name of file exists problem
+            continue
         datacheck,count=1,0
         for i in range(len(df)):  #the value of count is 0 if the data is test data
             count=count+(float(df['Depth(m)'][i])>mindepth)# keep track of # of depths>mindepth
@@ -201,9 +218,11 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
                 break
         if datacheck==0:
             print(vessel_name+':logger have issue:'+file)
+            Write_Text(lack_data,file)#record the name of file exists problem
             continue
         if count==0: #if the file is test file,print it
             print ("test file:"+file)
+            Write_Text(lack_data,file)
             continue
         try:
             df['Temperature(C)'] = df['Temperature(C)'].map(lambda x: '{0:.2f}'.format(float(x))) #keep two decimal fraction
@@ -1218,8 +1237,9 @@ def emolt_no_telemetry_df(tele_df,emolt_raw_df,emolt_no_telemetry_df):
                                     #emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
                         #else:
                         if emolt_time-time_range<=datetime.strptime(emolt_raw_df['datet'][i],"%Y-%m-%d %H:%M:%S")<=emolt_time+time_range:
-                             emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
-                             emolt_no_telemetry_df.index=range(len(emolt_no_telemetry_df))
+                             #emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=False)
+                             emolt_no_telemetry_df=emolt_no_telemetry_df.append(emolt_raw_df.iloc[i],ignore_index=True)
+                             #emolt_no_telemetry_df.index=range(len(emolt_no_telemetry_df))
                         #drop the data had wrong position,but raw data is fine
                              if not tele_df['lat'][j]-1<=emolt_raw_df['lat'][i]<=tele_df['lat'][j]+1 or tele_df['lon'][j]+1<=emolt_raw_df['lon'][i]<=tele_df['lon'][j]-1:
                                 emolt_no_telemetry_df=emolt_no_telemetry_df.drop([len(emolt_no_telemetry_df)-1])
