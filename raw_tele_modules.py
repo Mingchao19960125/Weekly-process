@@ -199,14 +199,14 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
         u,c = np.unique(diffs,return_counts=True)
         if c[np.where(u==0)] > len(df)*percentage_aceeeptable:
             print('pressure problem:'+file)
-            Write_Text(lack_data,file)
+            Write_Text(lack_data,file,reason='pressure problem')
             continue
         #Jim&Mingchao 10,Mar,2020 filter the values not enough min minutes
         dts=pd.to_datetime(df['Datet(GMT)'])
         total_diffs=dts[len(dts)-1]-dts[0]
         if total_diffs < min_minutes:
             print('bad data! time not more than 10 minutes:'+file)
-            Write_Text(lack_data,file)#record the name of file exists problem
+            Write_Text(lack_data,file,reason='bad data! time not more than 10 minutes')#record the name of file exists problem
             continue
         datacheck,count=1,0
         for i in range(len(df)):  #the value of count is 0 if the data is test data
@@ -218,11 +218,11 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
                 break
         if datacheck==0:
             print(vessel_name+':logger have issue:'+file)
-            Write_Text(lack_data,file)#record the name of file exists problem
+            Write_Text(lack_data,file,reason='logger have issue')#record the name of file exists problem
             continue
         if count==0: #if the file is test file,print it
             print ("test file:"+file)
-            Write_Text(lack_data,file)
+            Write_Text(lack_data,file,reason="test file")
             continue
         try:
             df['Temperature(C)'] = df['Temperature(C)'].map(lambda x: '{0:.2f}'.format(float(x))) #keep two decimal fraction
@@ -230,7 +230,7 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
             df['Lon'] = df['Lon'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))
             df['Lat'] = df['Lat'].map(lambda x: '{0:.4f}'.format(float(format_lat_lon(x))))#keep four decimal fraction
         except:
-            Write_Text(lack_data,file)
+            Write_Text(lack_data,file,reason='data is not enough')
             continue
         #Check if the header file contains all the information, and if it is wrong, fix it.
         for j in range(len(df_head)):#check and fix the vessel number 
@@ -938,7 +938,7 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
                                                   valuable_tele_df.drop(i)
                                                   break
          except:
-            Write_Text(file_name=lack_data,content=file)
+            Write_Text(file_name=lack_data,content=file,reason='process filter')
             continue                                        
                                 
     for i in record_file_df.index:
@@ -1252,8 +1252,8 @@ def subtract(df1,df2,columns):
     #df1=df1.drop_duplicates(subset=columns,keep='first')#keep='first' is to Remove first occurrence of duplicates
     return df1
 
-def Write_Text(file_name,content):
+def Write_Text(file_name,content,reason):
     '''store content in file_name'''
     with open(file_name,'a+') as f:
-        f.writelines(content)
+        f.writelines(reason+':'+content)
         f.writelines('\n')
