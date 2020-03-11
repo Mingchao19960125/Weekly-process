@@ -13,6 +13,8 @@ Dec 10,2019 Mingchao:
    create lack_data.txt to store the problem files before the modules of check_format data and match_tele_raw run
 Mar 5,2020 Jim&Mingchao
     filter the values that constant in >5 records and the values not enough 10 minutes
+Mar 11,2020 Mingchao
+    selecte the Boat belongs to Fixed or Mobile
 """
 import conversions as cv
 import ftplib
@@ -844,8 +846,12 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
              data_df=zl.skip_len_to(file,2) #only data
             #caculate the mean temperature and depth of every file
             #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
-             #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
-             value_data_df=data_df.loc[(data_df['Depth(m)']>0.95*max(data_df['Depth(m)']))]  #filter the data
+             for n in range(len(telemetrystatus_df)):#selecte the Boat belongs to Fixed or Mobile
+                if telemetrystatus_df['Boat'][n] == fpath.split('/')[8]:
+                    if telemetrystatus_df['Fixed vs. Mobile'][n] == 'Mobile':
+                        value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
+                    else:
+                        value_data_df=data_df.loc[(data_df['Depth(m)']>0.95*max(data_df['Depth(m)']))]  #filter the data
              value_data_df=value_data_df.iloc[7:]   #delay several minutes to let temperature sensor record the real bottom temp
              value_data_df=value_data_df.loc[(value_data_df['Temperature(C)']>mean(value_data_df['Temperature(C)'])-3*std(value_data_df['Temperature(C)'])) & \
                                             (value_data_df['Temperature(C)']<mean(value_data_df['Temperature(C)'])+3*std(value_data_df['Temperature(C)']))]  #Excluding gross error
