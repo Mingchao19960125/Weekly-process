@@ -1,6 +1,10 @@
 """
 Created on Mon Apr 29 13:09:10 2019
 
+Apr 9,2020 Mingchao
+
+Change df.dropna() to df.dropna(how='all'), in case temperature of Clim has data , but depth of Clim doesn't have data.
+
 @author: leizhao
 """
 import json
@@ -43,7 +47,8 @@ def check_time(df,time_header,start_time,end_time):
             continue
         else:
             df=df.drop(i)
-    df=df.dropna()
+    #df=df.dropna()
+    df=df.dropna(how='all')
     df.index=range(len(df))
     return df
 def diff(tele_df,M_df):
