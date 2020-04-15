@@ -5,6 +5,10 @@ Apr 9,2020 Mingchao
 
 Change df.dropna() to df.dropna(how='all'), in case temperature of Clim has data , but depth of Clim doesn't have data.
 
+Apr 15,2020 Mingchao
+
+Change df.dropna(how='all') to df.dropna(axis=0, subset=['temp']),if the column of temp is nan , we will delete this line.
+
 @author: leizhao
 """
 import json
@@ -48,7 +52,8 @@ def check_time(df,time_header,start_time,end_time):
         else:
             df=df.drop(i)
     #df=df.dropna()
-    df=df.dropna(how='all')
+    #df=df.dropna(how='all')
+    df=df.dropna(axis=0, subset=['temp'])
     df.index=range(len(df))
     return df
 def diff(tele_df,M_df):
@@ -226,10 +231,10 @@ def per_boat_map(df,path_save,dpi=300):
         xlabel='\nHT:the mean temperature in historical\nOBS:the mean temperature of observation,the number is the Standard deviation in Parentheses'
         ax.set_xlabel(xlabel,position=(0., 1e6),horizontalalignment='left',fontsize =size)
 #        if the path of the picture save is not there, creat the folder
-        if not os.path.exists(path_save+'/picture'+df['time'].strftime('%Y-%m')+'/'):
-            os.makedirs(path_save+'/picture'+df['time'].strftime('%Y-%m')+'/')
+        if not os.path.exists(path_save+'\\picture'+df['time'].strftime('%Y-%m')+'\\'):
+            os.makedirs(path_save+'\\picture'+df['time'].strftime('%Y-%m')+'\\')
         #save the map
-        plt.savefig(path_save+'/picture'+df['time'].strftime('%Y-%m')+'/'+df['name']+'_map'+'_'+end_t.strftime('%Y-%m-%d')+'.ps',dpi=dpi) #save picture
+        plt.savefig(path_save+'\\picture'+df['time'].strftime('%Y-%m')+'\\'+df['name']+'_map'+'_'+end_t.strftime('%Y-%m-%d')+'.ps',dpi=dpi) #save picture
         print(df['name']+' finished draw!')
     except KeyboardInterrupt:
         sys.exit()
@@ -266,9 +271,9 @@ def week_start_end(dtime,interval=0):
 a=1
 if a==1:
     #hardcode
-    filepathread='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'
-    path_save='/home/jmanning/leizhao/programe/diff_modules/result/differentmap/'
-    telemetry_status='/home/jmanning/leizhao/programe/aqmain/parameter/telemetry_status.csv'
+    filepathread='E:\\programe\\aqmain\\dictionary\\dictionary.json'
+    path_save='E:\\programe\\diff_modules\\result\\differentmap\\'
+    telemetry_status='E:\\programe\\aqmain\\parameter\\telemetry_status.csv'
     #end_time=datetime.now()
     end_time=datetime.utcnow()
 
