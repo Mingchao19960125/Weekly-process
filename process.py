@@ -9,6 +9,8 @@ finally: output the plot and statistics every week
 Mar 3,2020 Mingchao
     1.append emolt_no_telemetry every week
     2.the telemetry data have wrong lat and lon,but raw data have right lat and lon,we will compare them and put right raw data in emolt_no_telemetry
+Apr 24,2020 Mingchao
+    1.Add emolt_no_telemetry.drop_duplicates(subset=['vessel','lat','lon'], keep='first') to filter the same data in emolt_no_telemetry,save the first one.
 @author: leizhao
 """
 
@@ -67,7 +69,8 @@ def main():
     #emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,year_now=2019,emolt_no_telemetry_df=emolt_no_telemetry_DF)
     emolt_no_telemetry_result=rdm.emolt_no_telemetry_df(tele_df=tele_df,emolt_raw_df=emolt_raw_df,emolt_no_telemetry_df=emolt_no_telemetry_DF)
     #according to columns,drop_duplicates
-    emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
+    #emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','datet'])
+    emolt_no_telemetry_result=emolt_no_telemetry_result.drop_duplicates(['vessel','lat','lon'])
     #get the rest of emolt_raw_df,it's emolt_no_telemetry
     emolt_no_telemetry_result=rdm.subtract(df1=emolt_raw_df,df2=emolt_no_telemetry_result,columns=['vessel','datet','lat','lon','depth','depth_range','hours','mean_temp','std_temp'])
     #emolt_no_telemetry_result.index=range(len(emolt_no_telemetry_result))
@@ -83,6 +86,7 @@ def main():
     #append every week
     emolt_no_telemetry=pd.read_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
     emolt_no_telemetry=emolt_no_telemetry.append(emolt_no_telemetry_result)
+    emolt_no_telemetry=emolt_no_telemetry.drop_duplicates(subset=['vessel','lat','lon'], keep='first')
     emolt_no_telemetry=emolt_no_telemetry.sort_values(by=['vessel','datet'])
     emolt_no_telemetry.index=range(len(emolt_no_telemetry))
     emolt_no_telemetry.to_csv(os.path.join(emolt_no_telemetry_save,'emolt_no_telemetry.csv'))
