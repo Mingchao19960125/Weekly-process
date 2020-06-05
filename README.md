@@ -1,9 +1,10 @@
 # Weekly-process
-weekly-process include check_csv.py,process.py and diff_clim_obs.py:
+weekly-process include check_csv.py,process.py,create_modules_dictionary.py and diff_clim_obs.py:
 
       check_csv.py:check the data and fix it
             repositories of data:https://66.114.154.52:8443/smb/file-manager/list#   home directory/anno_ftp/Matdata
       process.py:get statistics.csv,emolt_no_telemetry.csv,time_series_plot and location map of vessel
+      create_modules_dictionary.py:update dictionary.json
       diff_clim_obs.py:get weekly.html
 The parameter of Weekly process should include raw_data_name.txt , telemetry_status.csv and dictionary.json 3 parts:
       
