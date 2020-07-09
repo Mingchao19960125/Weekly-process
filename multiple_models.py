@@ -482,6 +482,7 @@ def get_depth_bathy(loni,lati,mindist_allowed=10):
         if min_dist<mindist_allowed:
             return float(nc['z'][yi,xi])
 ###################################GOMOFS############################
+
 def get_gomofs_url(date):
     """
     the format of date is a datetime such as datetime.datetime(2019, 2, 27, 11, 56, 51, 666857)
@@ -507,6 +508,31 @@ def get_gomofs_url(date):
         nstr+'.'+date_str[:8]+'.'+tstr+'.nc'
     return url
 
+def get_gomofs_url_new(date):
+    """
+    the format of date is a datetime such as datetime.datetime(2019, 2, 27, 11, 56, 51, 666857)
+    returns the url of data
+    """
+#    print('start calculate the url!') 
+#    date=date+datetime.timedelta(hours=4.5)
+    date_str=date.strftime('%Y%m%d%H%M%S')
+    hours=int(date_str[8:10])+int(date_str[10:12])/60.+int(date_str[12:14])/3600.
+    tn=int(math.floor((hours)/6.0)*6)  ## for example: t12z the number is 12
+    if len(str(tn))==1:
+        tstr='t0'+str(tn)+'z'   # tstr in url represent hour string :t00z
+    else:
+        tstr='t'+str(tn)+'z'
+    if round((hours)/3.0-1.5,0)==tn/3:
+        nstr='n006'       # nstr in url represent nowcast string: n003 or n006
+    else:
+        nstr='n003'
+    # Jim changed 7/6/2020
+    url='https://www.ncei.noaa.gov/thredds/dodsC/model-gomofs-files/'+str(date.year)+'/'+str(date.month).zfill(2)+'/nos.gomofs.fields.'+nstr+'.'+date_str[:8]+'.'+tstr+'.nc'
+    
+    #url='http://opendap.co-ops.nos.noaa.gov/thredds/dodsC/NOAA/GOMOFS/MODELS/'\
+    #+date_str[:6]+'/nos.gomofs.fields.'+nstr+'.'+date_str[:8]+'.'+tstr+'.nc'
+    return url
+
 def get_gomofs_url_forecast(date,forecastdate=True):
     """
     same as get_gomofs_url but gets the forecast file instead of the nowcast
@@ -514,9 +540,9 @@ def get_gomofs_url_forecast(date,forecastdate=True):
     forecastdate like date or True
     return the url of data
     """
-    if forecastdate==True:  #if forcastdate is True: default the forcast date equal to the time of choose file.
+    if forcastdate==True:  #if forcastdate is True: default the forcast date equal to the time of choose file.
         forcastdate=date
-    date=date-datetime.timedelta(hours=1.5)  #the parameter of calculate txx(eg:t00,t06 and so on)
+    #date=date-datetime.timedelta(hours=1.5)  #the parameter of calculate txx(eg:t00,t06 and so on)
     tn=int(math.floor(date.hour/6.0)*6)  #the numer of hours in time index: eg: t12, the number is 12
     ymdh=date.strftime('%Y%m%d%H%M%S')[:10]  #for example:2019011112(YYYYmmddHH)
     if len(str(tn))==1:
@@ -544,7 +570,7 @@ def gomofs_coordinaterange(lat,lon):
 
 def get_gomofs(date_time,lat,lon,depth='bottom',mindistance=20):# JiM's simple version for bottom temp
     """
-    JiM's simplified version of Lei Zhao's function gets only bottom temp
+    JiM's simplified version of Lei Zhao's function
     the format time(GMT) is: datetime.datetime(2019, 2, 27, 11, 56, 51, 666857)
     lat and lon use decimal degrees
     return the temperature of specify location
@@ -564,13 +590,15 @@ def get_gomofs(date_time,lat,lon,depth='bottom',mindistance=20):# JiM's simple v
         print('forecast time under 3 days')
         return np.nan
     #start download data
-    url=get_gomofs_url(date_time)
+    if (datetime.datetime.utcnow()-date_time)<datetime.timedelta(days=3):
+        url=get_gomofs_url(date_time)#this url get data within 3 days recently
+    else:
+        url=get_gomofs_url_new(date_time)#this url get data 3 days ago
     nc=netCDF4.Dataset(str(url))
     gomofs_lons=nc.variables['lon_rho'][:]
     gomofs_lats=nc.variables['lat_rho'][:]
-    #gomofs_rho=nc.variables['s_rho']
-    #gomofs_h=nc.variables['h']
-    gomofs_h=nc.variables['h'][:]#Mingchao add on March,5
+    gomofs_rho=nc.variables['s_rho']
+    gomofs_h=nc.variables['h']
     gomofs_temp=nc.variables['temp']
     #caculate the index of the nearest four points using a "find_nd" function in Lei Zhao's conversion module   
     target_distance=2*zl.dist(lat1=gomofs_lats[0][0],lon1=gomofs_lons[0][0],lat2=gomofs_lats[0][1],lon2=gomofs_lons[0][1])
@@ -615,7 +643,10 @@ def get_gomofs_zl(dtime,latp,lonp,depth='bottom',mindistance=20,autocheck=True,f
         while(filecheck==1):  #download the data
             try:
                 if forecastdate==dtime:   #the forcastdate is input date_time, if the date_time changed yet,we will use the forecast data
-                    url=get_gomofs_url(dtime)
+                    if (datetime.datetime.utcnow()-dtime)<datetime.timedelta(days=3):
+                        url=get_gomofs_url(dtime)
+                    else:
+                        url=get_gomofs_url_new(dtime)
                     nc=netCDF4.Dataset(str(url))
                     print('download nowcast data.')
                 else:

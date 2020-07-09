@@ -31,6 +31,31 @@ import json
 import sys
 import os
 import ftplib
+
+################################# Hardcodes ################################
+end_time=datetime.utcnow()#UTC time
+start_time=end_time-timedelta(days=7) #get the time of start time
+start_time_button = 'off'#if you used 'off',you will use 'end-time' of dictionary.json as start_time 
+Host = '66.114.154.52'
+UserName = 'huanxin'
+Pswd = '123321'
+remot_dir = '/mingchao_weekly'
+local_folder = 'E:\\Mingchao\\result\\mingchao_weekly\\'   
+#realpath=os.path.dirname(os.path.abspath(__file__)) # get the path of this code file
+realpath=os.path.abspath('E:\\programe\\aqmain\\py')
+parameterpath=realpath[::-1].replace('py'[::-1],'parameter'[::-1],1)[::-1]# get the path of parameter
+telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')   #get the filepath and file name of telemetry status
+#telemetry_status='E:/programe/aqmain/parameter/telemetry_status.csv'
+    # download from web:'https://docs.google.com/spreadsheets/d/1uLhG_q09136lfbFZppU2DU9lzfYh0fJYsxDHUgMB1FM/edit?ts=5ba8fe2b#gid=0' 
+#climpath=os.path.join(realpath,'clim')
+climpath='E:\\programe\\aqmain\\py\\clim\\'
+resultpath=realpath[::-1].replace('py'[::-1],'dictionary'[::-1],1)[::-1]  #get the path of result 
+dictionarypath=os.path.join(resultpath,'dictionary.json') #filepath and filename of old dictionary 
+emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_no_telemetry.csv'
+emolt_QCed_path = 'https://www.nefsc.noaa.gov/drifter/emolt_QCed.csv'
+emolt_QCed_df_save = 'E:\\Mingchao\\result\\mingchao_weekly\\dictionary.json'
+###################################################################################
+
     
 def read_telemetrystatus(path_name):
     """read the telementry_status, then return the useful data"""
@@ -106,7 +131,7 @@ def create_storedictionary(dictionary):
     return dictionary
 
 #def classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath):
-def classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath,emolt_no_telemetry_path,emolt_QCed_path):
+def classify_by_boat(start_time_button,telemetry_status,start_time,end_time,dictionary,climpath,emolt_no_telemetry_path,emolt_QCed_path):
     """function: get the Doppio, GoMOLFs, FVCOM, Climate values
     
     input:
@@ -114,10 +139,10 @@ def classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath,em
     start_time:  start time, the format is datetime.datetime
     end _time: end time, the format is datetime.datetime
     dictionary:a dictionary that stores data for each module or an empty dictionary"""
-    try:
+    if start_time_button == 'off':
         start_time_str=dictionary['end_time']  # if dict['end_time'] is wrong, please comment this code
         start_time=datetime.strptime(start_time_str,'%Y-%m-%d %H:%M:%S')
-    except:
+    else:
         start_time=start_time
     telemetrystatus_df=read_telemetrystatus(telemetry_status)# read the telemetry status data
 #    emolt_df=read_emolt(start=start_time,end=end_time)   #emolt_df means emolt data, this data from website 'https://www.nefsc.noaa.gov/drifter/emolt.dat',we should avoid the update time when we use this function
@@ -184,6 +209,7 @@ def classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath,em
                     dpo_temp,dpo_depth = np.nan,np.nan
                     print('DOPPIO')
                 try:    #try to get the gomofs data in the same location
+                    #use Jim's method,added on 7/6/2020
                     GOMOFS = mm.get_gomofs_zl(dtime=ptime,latp=latpt,lonp=lonpt,depth='bottom',fortype='tempdepth')
                     if str(GOMOFS) == 'nan' or str(GOMOFS[0]) == 'nan':
                         gmf_temp,gmf_depth = mm.get_gomofs(date_time=ptime,lat=latpt,lon=lonpt,depth='bottom',mindistance=20)
@@ -255,7 +281,7 @@ def store_data(key,data_list,dictionary):
     return dictionary
 
 #def update_dictionary(telemetry_status,start_time,end_time,dictionarypath,climpath):
-def update_dictionary(telemetry_status,start_time,end_time,dictionarypath,climpath,emolt_no_telemetry_path,emolt_QCed_path,emolt_QCed_df_save):
+def update_dictionary(start_time_button,telemetry_status,start_time,end_time,dictionarypath,climpath,emolt_no_telemetry_path,emolt_QCed_path,emolt_QCed_df_save):
     '''use to update the dictonary that use to store the data from modules
     
     input:
@@ -273,7 +299,7 @@ def update_dictionary(telemetry_status,start_time,end_time,dictionarypath,climpa
         dictionary={}  
     #update dictionary 
     #obsdpogmf=classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath)  #running function to store new data from modules
-    obsdpogmf=classify_by_boat(telemetry_status,start_time,end_time,dictionary,climpath,emolt_no_telemetry_path,emolt_QCed_path)
+    obsdpogmf=classify_by_boat(start_time_button,telemetry_status,start_time,end_time,dictionary,climpath,emolt_no_telemetry_path,emolt_QCed_path)
     #save updated dictionary
     with open(dictionarypath, 'w') as fp:
         json.dump(obsdpogmf, fp)
@@ -292,29 +318,8 @@ def upload_weely(Host, UserName, Pswd,remot_dir, local_folder):
         ftp.storbinary(command, open(sendFILEName,'rb'))
         print('upload '+local_list[i])
     ftp.quit()
-    
-################################# Hardcodes ################################
-end_time=datetime.utcnow()#UTC time
-start_time=end_time-timedelta(days=7) #get the time of start time
-Host = '66.114.154.52'
-UserName = 'huanxin'
-Pswd = '123321'
-remot_dir = '/mingchao_weekly'
-local_folder = 'E:\\Mingchao\\result\\mingchao_weekly\\'   
-#realpath=os.path.dirname(os.path.abspath(__file__)) # get the path of this code file
-realpath=os.path.abspath('E:\\programe\\aqmain\\py')
-parameterpath=realpath[::-1].replace('py'[::-1],'parameter'[::-1],1)[::-1]# get the path of parameter
-telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')   #get the filepath and file name of telemetry status
-#telemetry_status='E:/programe/aqmain/parameter/telemetry_status.csv'
-    # download from web:'https://docs.google.com/spreadsheets/d/1uLhG_q09136lfbFZppU2DU9lzfYh0fJYsxDHUgMB1FM/edit?ts=5ba8fe2b#gid=0' 
-#climpath=os.path.join(realpath,'clim')
-climpath='E:\\programe\\aqmain\\py\\clim\\'
-resultpath=realpath[::-1].replace('py'[::-1],'dictionary'[::-1],1)[::-1]  #get the path of result 
-dictionarypath=os.path.join(resultpath,'dictionary.json') #filepath and filename of old dictionary 
-emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_no_telemetry.csv'
-emolt_QCed_path = 'https://www.nefsc.noaa.gov/drifter/emolt_QCed.csv'
-emolt_QCed_df_save = 'E:\\Mingchao\\result\\mingchao_weekly\\dictionary.json'
+
 ###############################  MAIN  #########################################
 #update_dictionary(telemetry_status,start_time,end_time,dictionarypath,climpath)   #that is a function use to update the dictionary
-update_dictionary(telemetry_status,start_time,end_time,dictionarypath,climpath,emolt_no_telemetry_path,emolt_QCed_path,emolt_QCed_df_save)
+update_dictionary(start_time_button,telemetry_status,start_time,end_time,dictionarypath,climpath,emolt_no_telemetry_path,emolt_QCed_path,emolt_QCed_df_save)
 upload_weely(Host, UserName, Pswd,remot_dir, local_folder)#upload to student drifter.If you don;t need,close this one
