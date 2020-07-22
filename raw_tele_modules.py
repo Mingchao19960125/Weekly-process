@@ -15,6 +15,8 @@ Mar 5,2020 Jim&Mingchao
     filter the values that constant in >5 records and the values not enough 10 minutes
 Mar 11,2020 Mingchao
     selecte the Boat belongs to Fixed or Mobile
+Apr 8,2020 Mingchao
+    Using 'type' replace 'cat' for adding the two file in one file on Windows
 """
 import conversions as cv
 import ftplib
@@ -62,7 +64,7 @@ def gps_compare_JiM(lat,lon,mindistfromharbor): #check to see if the boat is in 
     # function returns yes if this position is with "mindistfromharbor"  of a dock
     # note: lat and lon need to be in DDMM.M format so if you have decimal degrees you need to first convert using the  dd2dm function
     # we have been using 0.4 in minutes of a degree as our "mindistfromharbor" criteria
-    file='/home/jmanning/leizhao/programe/raw_data_match/parameter/harborlist.txt' # has header line lat, lon, harbor
+    file='E:\\programe\\raw_data_match\\parameter\\harborlist.txt' # has header line lat, lon, harbor
     df=pd.read_csv(file,sep=',')
     indice_lat=[i for i ,v in enumerate(abs(np.array(df['lat'])-lat)<mindistfromharbor) if v]
     indice_lon=[i for i ,v in enumerate(abs(np.array(df['lon'])-lon)<mindistfromharbor) if v]
@@ -175,7 +177,8 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
     for file in file_lists:
         fpath,fname=os.path.split(file)  #get the file's path and name
         #fix the file name
-        fname=file.split('/')[len(file.split('/'))-1]
+        #fname=file.split('/')[len(file.split('/'))-1]
+        fname=file.split('\\')[len(file.split('\\'))-1]
         if len(fname.split('_')[1])==2:# if the serieal number is only 2 digits make it 4
             new_fname=fname[:3]+LSN2+fname[3:]
         else:
@@ -189,7 +192,8 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
         except:
             print("worthless file:"+file)
             continue
-        vessel_name=fpath.split('/')[-2:-1][0] #get the vessel name
+        #vessel_name=fpath.split('/')[-2:-1][0] #get the vessel name
+        vessel_name=fpath.split('\\')[-2:-1][0]
         #check the format of the data
         if len(df.iloc[0])==5: # some files absent the "DATA" in the first column
             df.insert(0,'HEADING','DATA')
@@ -289,16 +293,18 @@ def check_reformat_data(indir,outdir,startt,endt,pstatus,lack_data,rdnf,LSN2='7a
         output_path=fpath.replace(indir,outdir)
         if not os.path.exists(output_path):   #check the path of the save file is exist,make it if not
             os.makedirs(output_path)
-        df_head.to_csv(output_path+'/'+new_fname,index=0,header=0)
-        df.to_csv(output_path+'/df_tem.csv',index=0)  #produce the temperature file  
+        #df_head.to_csv(output_path+'/'+new_fname,index=0,header=0)
+        df_head.to_csv(output_path+'\\'+new_fname,index=0,header=0)
+        df.to_csv(output_path+'\\df_tem.csv',index=0)  #produce the temperature file  
         #add the two file in one file and delet the temperature file
-        os.system('cat '+output_path+'/df_tem.csv'+' >> '+output_path+'/'+new_fname)
-        os.remove(output_path+'/df_tem.csv')
+        #os.system('cat '+output_path+'\\df_tem.csv'+' >> '+output_path+'\\'+new_fname)
+        os.system('type '+output_path+'\\df_tem.csv'+' >> '+output_path+'\\'+new_fname)
+        os.remove(output_path+'\\df_tem.csv')
 #    #caculate the total of all files and print save as a file.
     try:
         for i in range(len(total_df)-1):
             total_df['file_total'][len(total_df)-1]=total_df['file_total'][len(total_df)-1]+total_df['file_total'][i]
-        total_df.to_csv(outdir+'/items_number.txt',index=0)
+        total_df.to_csv(outdir+'\\items_number.txt',index=0)
     except KeyboardInterrupt:
         sys.exit()
     except:
@@ -335,7 +341,8 @@ def classify_by_boat(indir,outdir,pstatus):
     #classify the file        
     for file in file_lists:
         #time conversion, GMT time to local time
-        time_str=file.split('/')[len(file.split('/'))-1:][0].split('.')[0].split('_')[2]+' '+file.split('/')[len(file.split('/'))-1:][0].split('.')[0].split('_')[3]
+        #time_str=file.split('/')[len(file.split('/'))-1:][0].split('.')[0].split('_')[2]+' '+file.split('/')[len(file.split('/'))-1:][0].split('.')[0].split('_')[3]
+        time_str=file.split('\\')[len(file.split('\\'))-1:][0].split('.')[0].split('_')[2]+' '+file.split('\\')[len(file.split('\\'))-1:][0].split('.')[0].split('_')[3]
         time_local=zl.gmt_to_eastern(time_str[0:4]+'-'+time_str[4:6]+'-'+time_str[6:8]+' '+time_str[9:11]+':'+time_str[11:13]+':'+time_str[13:15]).strftime("%Y%m%d")
         #match the SN and date
         for i in range(len(df)):
@@ -343,12 +350,16 @@ def classify_by_boat(indir,outdir,pstatus):
                 continue
             else:
                 for j in range(len(df['Lowell-SN'][i].split(','))):   
-                    fname_len_SN=len(file.split('/')[len(file.split('/'))-1:][0].split('_')[1]) #the length of SN in the file name
+                    #fname_len_SN=len(file.split('/')[len(file.split('/'))-1:][0].split('_')[1]) #the length of SN in the file name
+                    fname_len_SN=len(file.split('\\')[len(file.split('\\'))-1:][0].split('_')[1])
                     len_SN=len(df['Lowell-SN'][i].split(',')[j]) #the length of SN in the culumn of the Lowell-SN inthe file of the telemetry_status.csv
-                    if df['Lowell-SN'][i].split(',')[j][len_SN-fname_len_SN:]==file.split('/')[len(file.split('/'))-1:][0].split('_')[1]:
+                    if df['Lowell-SN'][i].split(',')[j][len_SN-fname_len_SN:]==file.split('\\')[len(file.split('\\'))-1:][0].split('_')[1]:
+                    #if df['Lowell-SN'][i].split(',')[j][len_SN-fname_len_SN:]==file.split('/')[len(file.split('/'))-1:][0].split('_')[1]:
                         fpath,fname=os.path.split(file)    #seperate the path and name of the file
-                        dstfile=(fpath).replace(indir,outdir+'/'+df['Boat'][i]+'/'+fname.split('_')[2][:6]+'/'+fname) #produce the path+filename of the destination
-                        dstfile=dstfile.replace('//','/').replace(' ','_')
+                        #dstfile=(fpath).replace(indir,outdir+'/'+df['Boat'][i]+'/'+fname.split('_')[2][:6]+'/'+fname) #produce the path+filename of the destination
+                        dstfile=(fpath).replace(indir,outdir+'\\'+df['Boat'][i]+'\\'+fname.split('_')[2][:6]+'\\'+fname)
+                        #dstfile=dstfile.replace('//','/').replace(' ','_')
+                        dstfile=dstfile.replace('//','\\').replace(' ','_')
                         
                         try:#copy the file to the destination folder
                             if j<len(df['logger_change'][i])-1:
@@ -512,7 +523,7 @@ def classify_tele_raw_by_boat(input_dir,path_save,telemetry_status,start_time,en
         raw_dict[i].index=range(len(raw_dict[i]))
     record_file_df=record_file_df.drop(['sum_diff_depth','sum_diff_temp'],axis=1)
     #save the record file
-    record_file_df.to_csv(path_save+'/'+start_time+'_'+end_time+' statistics.csv',index=0) 
+    record_file_df.to_csv(path_save+'\\'+start_time+'_'+end_time+' statistics.csv',index=0) 
     dict={}
     dict['raw_dict']=raw_dict
     dict['tele_dict']=tele_dict
@@ -633,7 +644,7 @@ def draw_time_series_plot(raw_dict,tele_dict,name,start_time,end_time,path_pictu
     if not os.path.exists(path):
         os.makedirs(path)
     #plt.savefig(path+'/'+start_time.strftime('%Y-%m-%d')+'_'+end_time.strftime('%Y-%m-%d')+'.png',dpi=dpi)
-    plt.savefig(path+'/'+start_time_local.strftime('%Y-%m-%d')+'_'+end_time_local.strftime('%Y-%m-%d')+'.png',dpi=dpi)
+    plt.savefig(path+'\\'+start_time_local.strftime('%Y-%m-%d')+'_'+end_time_local.strftime('%Y-%m-%d')+'.png',dpi=dpi)
  
 
 def draw_map(raw_df,tele_df,name,start_time_local,end_time_local,path_picture_save,dpi=300):
@@ -728,9 +739,9 @@ def draw_map(raw_df,tele_df,name,start_time_local,end_time_local,path_picture_sa
                 ax.plot(tele_x,tele_y,'b*',markersize=6,alpha=0.5,label='telemetry')
                 ax.legend()
         name=name.replace(' ','_')
-        if not os.path.exists(path_picture_save+'/'+name+'/'):
-            os.makedirs(path_picture_save+'/'+name+'/')
-        plt.savefig(path_picture_save+'/'+name+'/'+'location'+'_'+start_time_local.strftime('%Y-%m-%d')+'_'+end_time_local.strftime('%Y-%m-%d')+'.png',dpi=dpi)
+        if not os.path.exists(path_picture_save+'\\'+name+'\\'):
+            os.makedirs(path_picture_save+'\\'+name+'\\')
+        plt.savefig(path_picture_save+'\\'+name+'\\'+'location'+'_'+start_time_local.strftime('%Y-%m-%d')+'_'+end_time_local.strftime('%Y-%m-%d')+'.png',dpi=dpi)
         print(name+' finished draw!')
     except KeyboardInterrupt:
         sys.exit()
@@ -744,7 +755,7 @@ def format_lat_lon(data):
     return data
 
 
-def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,lack_data,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
+def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,lack_data,emolt_QCed_df_save,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
                    accept_minutes_diff=20,acceptable_distance_diff=2,dpi=300,Ttdepth=5):
     """
     start time and end time is utc time, and the format is datetime.datetime
@@ -847,7 +858,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
             #caculate the mean temperature and depth of every file
             #value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*mean(data_df['Depth(m)']))]  #filter the data
              for n in range(len(telemetrystatus_df)):#selecte the Boat belongs to Fixed or Mobile
-                if telemetrystatus_df['Boat'][n] == fpath.split('/')[8]:
+                #if telemetrystatus_df['Boat'][n] == fpath.split('\\')[8]:
+                if telemetrystatus_df['Boat'][n] == fpath.split('\\')[5]:
                     if telemetrystatus_df['Fixed vs. Mobile'][n] == 'Mobile':
                         value_data_df=data_df.loc[(data_df['Depth(m)']>0.85*max(data_df['Depth(m)']))]  #filter the data
                     else:
@@ -987,8 +999,8 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
     #save the record file
     if not os.path.exists(path_save):
             os.makedirs(path_save)
-    #record_file_df.to_csv(os.path.join(path_save,start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv'),index=0)
-    record_file_df.to_csv(os.path.join(path_save,start_time_local.strftime('%Y%m%d')+'_'+end_time_local.strftime('%Y%m%d')+'_statistics.csv'),index=0)
+    record_file_df.to_csv(os.path.join(path_save,start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv'),index=0)
+    record_file_df.to_csv(os.path.join(emolt_QCed_df_save,'statistics.csv'),index=0)
     dict={}
     dict['raw_dict']=raw_dict
     dict['tele_dict']=tele_dict
@@ -1096,7 +1108,7 @@ def statistic(input_dir,path_save,telemetry_status,start_time,end_time,telemetry
                                                    
     #save the record file
     
-    record_file_df.to_csv(path_save+'/'+start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv',index=0) 
+    record_file_df.to_csv(path_save+'\\'+start_time.strftime('%Y%m%d')+'_'+end_time.strftime('%Y%m%d')+'_statistics.csv',index=0) 
 
 
 

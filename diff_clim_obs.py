@@ -2,13 +2,11 @@
 Created on Mon Apr 29 13:09:10 2019
 
 Apr 9,2020 Mingchao
-
-Change df.dropna() to df.dropna(how='all'), in case temperature of Clim has data , but depth of Clim doesn't have data.
-
+    Change df.dropna() to df.dropna(how='all'), in case temperature of Clim has data , but depth of Clim doesn't have data.
 Apr 15,2020 Mingchao
-
-Change df.dropna(how='all') to df.dropna(axis=0, subset=['temp']),if the column of temp is nan , we will delete this line.
-
+    Change df.dropna(how='all') to df.dropna(axis=0, subset=['temp']),if the column of temp is nan , we will delete this line.
+May 14,2020 Mingchao
+    save weekly.html to 'E:\Mingchao\result\weeklyhtml' , then upload for emolt.org
 @author: leizhao
 """
 import json
@@ -27,6 +25,7 @@ import zlconversions as zl
 import time
 import pandas as pd
 import folium
+import ftplib
 
 #import numpy as np # linear algebra
 #def check_time(df,start_time,end_time,time_header='time'):
@@ -41,6 +40,20 @@ import folium
 #            df=df.drop(i)
 #    df.index=range(len(df))
 #    return df
+
+def upload_weely(Host, UserName, Pswd,remot_dir, local_folder):
+    '''upload weekly result to student drifter'''
+    ftp = ftplib.FTP(Host)
+    ftp.login(UserName, Pswd)
+    ftp.cwd(remot_dir)
+    local_list = os.listdir(local_folder)
+    for i in range(len(local_list)):
+        command = 'STOR '+local_list[i]
+        sendFILEName = local_folder+local_list[i]
+        ftp.storbinary(command, open(sendFILEName,'rb'))
+        print('upload '+local_list[i])
+    ftp.quit()
+
 def check_time(df,time_header,start_time,end_time):
     '''keep the type of time is datetime
     input start time and end time, return the data between start time and end time'''
@@ -125,7 +138,8 @@ def C2F(T):
     '''Celcius convert to Fahrenheit'''
     return 32+1.8*T
 
-def all_boat_map(df,path_save,telemetrystatus_df):
+#def all_boat_map(df,path_save,telemetrystatus_df):
+def all_boat_map(df,path_save,telemetrystatus_df,emolt_QCed_df_save):
 #def all_boat_map(df,path_save,telemetrystatus_df,start_time,end_time):
     '''input a dataframe,below must be have this information in dataframe:
         name, time,lon,lat,observation temperature, climate temperature, the number of files in interval
@@ -178,6 +192,7 @@ def all_boat_map(df,path_save,telemetrystatus_df):
     if not os.path.exists(psave):
         os.makedirs(psave)       
     map.save(os.path.join(psave,'weekly.html'))
+    map.save(os.path.join(emolt_QCed_df_save,'weekly.html'))
     with open(os.path.join(psave,'weekly.html'),'a') as file:  #add the explaintion in html
         file.write('''        <body>
             <div id="header"><br>
@@ -274,9 +289,14 @@ if a==1:
     filepathread='E:\\programe\\aqmain\\dictionary\\dictionary.json'
     path_save='E:\\programe\\diff_modules\\result\\differentmap\\'
     telemetry_status='E:\\programe\\aqmain\\parameter\\telemetry_status.csv'
+    emolt_QCed_df_save='E:\\Mingchao\\result\\weeklyhtml'
+    Host = '66.114.154.52'
+    UserName = 'mingchaossh'
+    Pswd = 'eMOLT1$'
+    remot_dir = '/httpdocs'
+    local_folder = 'E:\\Mingchao\\result\\weeklyhtml\\'
     #end_time=datetime.now()
-    end_time=datetime.utcnow()
-
+    end_time=datetime.utcnow()#-timedelta(days=1)
     #start_time,end_time=week_start_end(end_time,interval=1) #the interval=1, menas the week is the last week of this time.
     start_time=end_time-timedelta(weeks=1)
     ####
@@ -325,10 +345,12 @@ if a==1:
     if len(df)!=0:
         #df=df.dropna()
         df.index=range(len(df))
-        all_boat_map(df,path_save,telemetrystatus_df)
+        #all_boat_map(df,path_save,telemetrystatus_df)
+        all_boat_map(df,path_save,telemetrystatus_df,emolt_QCed_df_save)
         #all_boat_map(df,path_save,telemetrystatus_df,start_time,end_time)
         #    for i in df.index:
-        #        per_boat_map(df.iloc[i],path_save,dpi=300) 
-                
+        #        per_boat_map(df.iloc[i],path_save,dpi=300)
+        print('start upload')
+        upload_weely(Host, UserName, Pswd,remot_dir, local_folder)               
         
 

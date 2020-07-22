@@ -590,10 +590,10 @@ def get_gomofs(date_time,lat,lon,depth='bottom',mindistance=20):# JiM's simple v
         print('forecast time under 3 days')
         return np.nan
     #start download data
-    if (datetime.datetime.utcnow()-date_time)<datetime.timedelta(days=3):
-        url=get_gomofs_url(date_time)#this url get data within 3 days recently
+    if (datetime.datetime.utcnow()-date_time)<datetime.timedelta(days=25):
+        url=get_gomofs_url(date_time)#this url get data within 25 days recently
     else:
-        url=get_gomofs_url_new(date_time)#this url get data 3 days ago
+        url=get_gomofs_url_new(date_time)#this url get data 25 days ago
     nc=netCDF4.Dataset(str(url))
     gomofs_lons=nc.variables['lon_rho'][:]
     gomofs_lats=nc.variables['lat_rho'][:]
@@ -643,7 +643,7 @@ def get_gomofs_zl(dtime,latp,lonp,depth='bottom',mindistance=20,autocheck=True,f
         while(filecheck==1):  #download the data
             try:
                 if forecastdate==dtime:   #the forcastdate is input date_time, if the date_time changed yet,we will use the forecast data
-                    if (datetime.datetime.utcnow()-dtime)<datetime.timedelta(days=3):
+                    if (datetime.datetime.utcnow()-dtime)<datetime.timedelta(days=25):
                         url=get_gomofs_url(dtime)
                     else:
                         url=get_gomofs_url_new(dtime)
