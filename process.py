@@ -207,7 +207,8 @@ def main():
     emolt_no_telemetry_df=get_emolt_no_telemetry(path, emolt_raw_path, emolt_QCed_df_save)
     emolt_no_telemetry_df.to_csv(os.path.join(emolt_QCed_df_save,'emolt_no_telemetry.csv'))
     df_good=dfgood(emolt_QCed_path, depth_ok, min_miles_from_dock, temp_ok, fraction_depth_error, mindist_allowed, emolt_no_telemetry=emolt_no_telemetry_df)
-    df_good.to_csv(os.path.join(emolt_QCed_df_save,'emolt_QCed_no_telemetry.csv'))
+#    df_good.to_csv(os.path.join(emolt_QCed_df_save,'emolt_QCed_no_telemetry.csv'))
+    df_good.to_csv(os.path.join(emolt_QCed_df_save,'emolt_QCed_telemetry_and_wified.csv'))
     #tele_dict=dict['tele_dict']
     #raw_dict=dict['raw_dict']
     #record_file_df=dict['record_file_df']

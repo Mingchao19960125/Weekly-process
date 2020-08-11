@@ -34,7 +34,7 @@ import ftplib
 
 ################################# Hardcodes ################################
 end_time=datetime.utcnow()#UTC time
-start_time=end_time-timedelta(days=7) #get the time of start time
+start_time=end_time-timedelta(weeks=1) #get the time of start time
 start_time_button = 'off'#if you used 'off',you will use 'end-time' of dictionary.json as start_time 
 Host = '66.114.154.52'
 UserName = 'huanxin'
@@ -51,7 +51,8 @@ telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')   #get the f
 climpath='E:\\programe\\aqmain\\py\\clim\\'
 resultpath=realpath[::-1].replace('py'[::-1],'dictionary'[::-1],1)[::-1]  #get the path of result 
 dictionarypath=os.path.join(resultpath,'dictionary.json') #filepath and filename of old dictionary 
-emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_no_telemetry.csv'
+#emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_no_telemetry.csv'
+emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_telemetry_and_wified.csv'
 emolt_QCed_path = 'https://www.nefsc.noaa.gov/drifter/emolt_QCed.csv'
 emolt_QCed_df_save = 'E:\\Mingchao\\result\\mingchao_weekly\\dictionary.json'
 ###################################################################################
@@ -146,10 +147,11 @@ def classify_by_boat(start_time_button,telemetry_status,start_time,end_time,dict
         start_time=start_time
     telemetrystatus_df=read_telemetrystatus(telemetry_status)# read the telemetry status data
 #    emolt_df=read_emolt(start=start_time,end=end_time)   #emolt_df means emolt data, this data from website 'https://www.nefsc.noaa.gov/drifter/emolt.dat',we should avoid the update time when we use this function
-    emolt_df = pd.read_csv(emolt_no_telemetry_path, index_col=0)
+#    emolt_df = pd.read_csv(emolt_no_telemetry_path, index_col=0)
     emolt_QCed_df = pd.read_csv(emolt_QCed_path, index_col=0)
     emolt_QCed_df = emolt_QCed_df[emolt_QCed_df['flag']==0]
-    emolt_df = emolt_df.append(emolt_QCed_df)
+#    emolt_df = emolt_df.append(emolt_QCed_df)
+    emolt_df = emolt_QCed_df
     emolt_df = emolt_df.drop_duplicates(['vessel','datet'])
     emolt_df = emolt_df.rename(columns={'vessel':'vessel_n','datet':'time','mean_temp':'temp'})
     emolt_df['time'] = pd.to_datetime(emolt_df['time'])
