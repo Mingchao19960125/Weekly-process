@@ -87,7 +87,7 @@ def dfgood(emolt_QCed_path, depth_ok, min_miles_from_dock, temp_ok, fraction_dep
     emolt_QCed_df.index=range(len(emolt_QCed_df))
     emolt_no_telemetry.index=range(len(emolt_no_telemetry))
     flag=[]
-    url='https://www.ngdc.noaa.gov/thredds/dodsC/crm/crm_vol1.nc'
+    url='https://ngdc.noaa.gov/thredds/dodsC/crm/crm_vol1.nc'
     try:
         nc=netCDF4.Dataset(url).variables 
         lon=nc['x'][:]
@@ -111,7 +111,7 @@ def dfgood(emolt_QCed_path, depth_ok, min_miles_from_dock, temp_ok, fraction_dep
         for k in range(len(emolt_no_telemetry)):
             if gps_compare_JiM(emolt_no_telemetry['lat'][k],emolt_no_telemetry['lon'][k],min_miles_from_dock)=='yes': # this means it is near a dock
                 flag.append(1)
-            elif (int(emolt_no_telemetry['mean_temp'][k])<temp_ok[0]) or (int(emolt_no_telemetry['mean_temp'][k])>temp_ok[1]):
+            elif (float(emolt_no_telemetry['mean_temp'][k])<temp_ok[0]) or (float(emolt_no_telemetry['mean_temp'][k])>temp_ok[1]):
             #elif (emolt_no_telemetry['mean_temp'][k]<temp_ok[0]) or (emolt_no_telemetry['mean_temp'][k]>temp_ok[1]):
                 flag.append(2)
             elif (emolt_no_telemetry['depth'][k]<depth_ok[0]) or (emolt_no_telemetry['depth'][k]>depth_ok[1]):
@@ -181,15 +181,15 @@ def main():
     #parameterpath=realpath.replace('py','parameter')
     output_path=realpath.replace('py','result')  #use to save the data 
     picture_save=output_path+'\\stats\\' #use to save the picture
-    emolt='https://www.nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
+    emolt='https://nefsc.noaa.gov/drifter/emolt.dat' #this is download from https://www.nefsc.noaa.gov/drifter/emolt.dat, 
     #telemetry_status=os.path.join(parameterpath,'telemetry_status.csv')
     #telemetry_status='/home/jmanning/Mingchao/parameter/telemetry_status.csv'
     telemetry_status='E:\\programe\\aqmain\\parameter\\telemetry_status.csv'
     emolt_raw_save='E:\\Mingchao\\result'#output emolt_raw.csv
     emolt_raw_path='E:\\Mingchao\\result\\emolt_raw.csv'#input emolt_raw.csv 
-    path='https://www.nefsc.noaa.gov/drifter/emolt.dat'#input emolt.dat
+    path='https://nefsc.noaa.gov/drifter/emolt.dat'#input emolt.dat
     lack_data_path='E:\\programe\\raw_data_match\\result\\lack_data.txt'
-    emolt_QCed_path = 'https://www.nefsc.noaa.gov/drifter/emolt_QCed.csv'
+    emolt_QCed_path = 'https://nefsc.noaa.gov/drifter/emolt_QCed.csv'
     emolt_QCed_df_save = 'E:\\Mingchao\\result\\mingchao_weekly'
     # below hardcodes is the informations to upload local data to student drifter. 
 #    subdir=['stats']    

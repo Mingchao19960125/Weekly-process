@@ -88,7 +88,8 @@ def listclean(lista):
 def weekly_times(name,tstart,tend):
     '''input name and start time and end time, the formay of start and end time is str yyyy-mm-dd
     acording to this information count how often the fisherman fishing'''
-    path='https://www.nefsc.noaa.gov/drifter/emolt_ap3_reports.dat'
+#    path='https://nefsc.noaa.gov/drifter/emolt_ap3_reports.dat'
+    path = 'https://apps-nefsc.fisheries.noaa.gov/drifter/emolt_ap3_reports.dat'
     df=pd.read_csv(path,sep=',',names=['name','time','lat','lon'])
     for j in df.index:
         if not tstart<=df['time'][j]<=tend:
@@ -374,7 +375,7 @@ def classify_by_boat(indir,outdir,pstatus):
                             print(file)
                             print("please check the data of telemetry status!")
 
-def classify_tele_raw_by_boat(input_dir,path_save,telemetry_status,start_time,end_time,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',dpi=300):
+def classify_tele_raw_by_boat(input_dir,path_save,telemetry_status,start_time,end_time,telemetry_path='https://nefsc.noaa.gov/drifter/emolt.dat',dpi=300):
     """
     the type of start tiem and end time is str :'%Y-%m-%d'
     match the file and telementy.
@@ -755,7 +756,7 @@ def format_lat_lon(data):
     return data
 
 
-def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,lack_data,emolt_QCed_df_save,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
+def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emolt_raw_save,lack_data,emolt_QCed_df_save,telemetry_path='https://nefsc.noaa.gov/drifter/emolt.dat',\
                    accept_minutes_diff=20,acceptable_distance_diff=2,dpi=300,Ttdepth=5):
     """
     start time and end time is utc time, and the format is datetime.datetime
@@ -1026,7 +1027,7 @@ def match_tele_raw(input_dir,path_save,telemetry_status,start_time,end_time,emol
     return dict
           
 
-def statistic(input_dir,path_save,telemetry_status,start_time,end_time,telemetry_path='https://www.nefsc.noaa.gov/drifter/emolt.dat',\
+def statistic(input_dir,path_save,telemetry_status,start_time,end_time,telemetry_path='https://nefsc.noaa.gov/drifter/emolt.dat',\
               accept_minutes_diff=20,acceptable_distance_diff=2,dpi=300,Ttdepth=5):
     """
     match the file and telementy.

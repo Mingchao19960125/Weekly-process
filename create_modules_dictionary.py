@@ -35,7 +35,7 @@ import ftplib
 ################################# Hardcodes ################################
 end_time=datetime.utcnow()#UTC time
 start_time=end_time-timedelta(weeks=1) #get the time of start time
-start_time_button = 'off'#if you used 'off',you will use 'end-time' of dictionary.json as start_time 
+start_time_button = 'on'#if you used 'off',you will use 'end-time' of dictionary.json as start_time 
 Host = '66.114.154.52'
 UserName = 'huanxin'
 Pswd = '123321'
@@ -53,7 +53,7 @@ resultpath=realpath[::-1].replace('py'[::-1],'dictionary'[::-1],1)[::-1]  #get t
 dictionarypath=os.path.join(resultpath,'dictionary.json') #filepath and filename of old dictionary 
 #emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_no_telemetry.csv'
 emolt_no_telemetry_path='E:\\Mingchao\\result\\mingchao_weekly\\emolt_QCed_telemetry_and_wified.csv'
-emolt_QCed_path = 'https://www.nefsc.noaa.gov/drifter/emolt_QCed.csv'
+emolt_QCed_path = 'https://nefsc.noaa.gov/drifter/emolt_QCed.csv'
 emolt_QCed_df_save = 'E:\\Mingchao\\result\\mingchao_weekly\\dictionary.json'
 ###################################################################################
 
@@ -81,7 +81,7 @@ def read_telemetrystatus(path_name):
     return telemetrystatus_df
 
 #def read_emolt_all(path='https://www.nefsc.noaa.gov/drifter/emolt.dat',endtime=datetime.now()):
-def read_emolt_all(path='https://www.nefsc.noaa.gov/drifter/emolt.dat',endtime=datetime.utcnow()):
+def read_emolt_all(path='https://nefsc.noaa.gov/drifter/emolt.dat',endtime=datetime.utcnow()):
 #def read_emolt_all(path='/home/jmanning/Mingchao/result/emolt_dat_all.csv',endtime=datetime.now()):
     """read the emolt data and fix a standard format, the return the standard data"""
     while True:
@@ -90,11 +90,11 @@ def read_emolt_all(path='https://www.nefsc.noaa.gov/drifter/emolt.dat',endtime=d
         if int(emolt_df['year'][len(emolt_df)-2])==endtime.year:
             break
         else:
-            print('check the web:https://www.nefsc.noaa.gov/drifter/emolt.dat.')
+            print('check the web:https://nefsc.noaa.gov/drifter/emolt.dat.')
             time.sleep(600)
     return emolt_df
 
-def read_emolt(start,end,path='https://www.nefsc.noaa.gov/drifter/emolt.dat'):
+def read_emolt(start,end,path='https://nefsc.noaa.gov/drifter/emolt.dat'):
 #def read_emolt(start,end,path='/home/jmanning/Mingchao/result/emolt_dat_all.csv'):
     '''the start and end is represent the sart time and end time, the format is datetime.datetime
     function: return the emolt data, the time during start time and end time.
@@ -147,11 +147,10 @@ def classify_by_boat(start_time_button,telemetry_status,start_time,end_time,dict
         start_time=start_time
     telemetrystatus_df=read_telemetrystatus(telemetry_status)# read the telemetry status data
 #    emolt_df=read_emolt(start=start_time,end=end_time)   #emolt_df means emolt data, this data from website 'https://www.nefsc.noaa.gov/drifter/emolt.dat',we should avoid the update time when we use this function
-#    emolt_df = pd.read_csv(emolt_no_telemetry_path, index_col=0)
-    emolt_QCed_df = pd.read_csv(emolt_QCed_path, index_col=0)
-    emolt_QCed_df = emolt_QCed_df[emolt_QCed_df['flag']==0]
+    emolt_df = pd.read_csv(emolt_no_telemetry_path, index_col=0)
+#    emolt_QCed_df = pd.read_csv(emolt_QCed_path, index_col=0)
+#    emolt_QCed_df = emolt_QCed_df[emolt_QCed_df['flag']==0]
 #    emolt_df = emolt_df.append(emolt_QCed_df)
-    emolt_df = emolt_QCed_df
     emolt_df = emolt_df.drop_duplicates(['vessel','datet'])
     emolt_df = emolt_df.rename(columns={'vessel':'vessel_n','datet':'time','mean_temp':'temp'})
     emolt_df['time'] = pd.to_datetime(emolt_df['time'])
@@ -260,7 +259,7 @@ def classify_by_boat(start_time_button,telemetry_status,start_time,end_time,dict
                     sys.exit()
                 except:
                     climtemp=np.nan
-                    print('CLIM TEMP')
+                    print('CLIM TEMP NAN'+ptime)
                 data_list=[latpt,lonpt,float(temppt),float(depthpt),float(dpo_temp),float(dpo_depth),float(gmf_temp),float(gmf_depth),float(FV_temp),float(FV_depth),float(climtemp),float(ngdc_depth)]
                 dictionary[vessel_name]=store_data(key=str(ptime),data_list=data_list,dictionary=dictionary[vessel_name])
                 emolt_df=emolt_df.drop(i)  #if this line has been classify, delete this line
